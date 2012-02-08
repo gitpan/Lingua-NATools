@@ -6,6 +6,7 @@ use strict;
 use Pod::Man;
 
 use Config;
+use Config::AutoConf;
 use ExtUtils::ParseXS;
 use ExtUtils::Mkbootstrap;
 use Capture::Tiny 'capture';

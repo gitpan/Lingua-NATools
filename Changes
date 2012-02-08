@@ -1,8 +1,11 @@
 
-NATools 0.6.0 - 
- 
+0.6.0_2 - Wed Feb  8 14:10:11 WET 2012
+ - Fixed dependency version on Config::AutoConf.
+
+0.6.0_1 - Tue Feb  7 14:10:11 WET 2012 
  - Yet again, suggested to remove all nat-* files in your path before
    installing.
+ - Autoconf substituted by Perl.
 
 Overview of changes in NATools 0.5.9
 ====================================

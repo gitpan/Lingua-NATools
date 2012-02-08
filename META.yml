@@ -4,7 +4,7 @@ author:
   - 'Alberto SimÃµes <ambs@cpan.org>'
 build_requires:
   Capture::Tiny: 0
-  Config::AutoConf: 0.14
+  Config::AutoConf: 0.19
   ExtUtils::CBuilder: 0.27
   ExtUtils::LibBuilder: 0.01
   Module::Build: 0.3603
@@ -12,7 +12,7 @@ build_requires:
   Test::More: 0
 configure_requires:
   Capture::Tiny: 0
-  Config::AutoConf: 0.14
+  Config::AutoConf: 0.19
   ExtUtils::CBuilder: 0.27
   ExtUtils::LibBuilder: 0.01
   ExtUtils::PkgConfig: 1.12
@@ -27,7 +27,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.6.0_1
+    version: v0.6.0_2
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: 0.02
@@ -109,4 +109,4 @@ requires:
   XML::TMX: 0.16
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.6.0_1
+version: v0.6.0_2

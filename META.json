@@ -17,7 +17,7 @@
       "build" : {
          "requires" : {
             "Capture::Tiny" : "0",
-            "Config::AutoConf" : "0.14",
+            "Config::AutoConf" : "0.19",
             "ExtUtils::CBuilder" : "0.27",
             "ExtUtils::LibBuilder" : "0.01",
             "Module::Build" : "0.3603",
@@ -28,7 +28,7 @@
       "configure" : {
          "requires" : {
             "Capture::Tiny" : "0",
-            "Config::AutoConf" : "0.14",
+            "Config::AutoConf" : "0.19",
             "ExtUtils::CBuilder" : "0.27",
             "ExtUtils::LibBuilder" : "0.01",
             "ExtUtils::PkgConfig" : "1.12",
@@ -76,7 +76,7 @@
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.6.0_1"
+         "version" : "v0.6.0_2"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -145,5 +145,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.6.0_1"
+   "version" : "v0.6.0_2"
 }

@@ -60,7 +60,7 @@ my $builder = MyBuilder->new
                 'List::MoreUtils'      => '0',
                },
    configure_requires => {
-                          'Config::AutoConf'   => '0.14',
+                          'Config::AutoConf'   => '0.19',
                           'ExtUtils::PkgConfig' => '1.12',
                           'Capture::Tiny'        => '0',
                           'ExtUtils::CBuilder' => '0.27',
@@ -68,7 +68,7 @@ my $builder = MyBuilder->new
                           'Module::Build'      => '0.3603',
                          },
    build_requires => {
-                      'Config::AutoConf'     => '0.14',
+                      'Config::AutoConf'     => '0.19',
                       'ExtUtils::CBuilder'   => '0.27',
                       'Pod::Man'             => '0',
                       'ExtUtils::LibBuilder' => '0.01',
