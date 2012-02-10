@@ -14,6 +14,7 @@ use ExtUtils::LibBuilder;
 use File::Spec::Functions qw.catdir catfile.;
 use File::Path qw.mkpath.;
 use ExtUtils::PkgConfig;
+use Parse::Yapp;
 
 my $pedantic = $ENV{AMBS_PEDANTIC} || 0;
 
@@ -163,9 +164,9 @@ sub ACTION_code {
 
     $self->_set_libbuilder();
 
-
-    `yapp -m Lingua::NATools::PatternRules -o lib/Lingua/NATools/PatternRules.pm lib/Lingua/NATools/PatternRules.yp`;
-
+    my_yapp(module => 'Lingua::NATools::PatternRules',
+            output => 'lib/Lingua/NATools/PatternRules.pm',
+            input => 'lib/Lingua/NATools/PatternRules.yp');
 
     $self->dispatch("create_manpages");
     $self->dispatch("create_objects");
@@ -577,5 +578,17 @@ EOP
 
 sub FAIL { print "Error, can't continue\n"; exit 0; }
 
+sub my_yapp {
+    my %ops = @_;
+
+    my ($parser) = Parse::Yapp->new(inputfile => $ops{input});
+
+    open OUT, ">", $ops{output} or die "Can't create $ops{output} file";
+    print OUT $parser->Output(classname => $ops{module},
+                              standalone => 0,
+                              linenumbers => 1,
+                              template => "");
+    close OUT;
+}
 
 1;

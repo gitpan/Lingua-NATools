@@ -26,7 +26,7 @@ use XML::TMX::Reader;
 use Lingua::PT::PLNbase;
 use Lingua::Identify qw/:all/;
 
-our $VERSION = '0.6.0_2';
+our $VERSION = '0.6.0_3';
 our $DEBUG = 0;
 
 use parent 'DynaLoader';

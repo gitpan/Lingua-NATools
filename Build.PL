@@ -87,6 +87,7 @@ my $builder = MyBuilder->new
                       'src/*.dylib',
                       'src/*.dll',
                       'xs/*.c',
+					  'lib/Lingua/NATools/PatternRules.pm',
                       'xs/*.o',
                       'Lingua-NATools-*',
                       '_build/objects',

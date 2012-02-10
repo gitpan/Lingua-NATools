@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,8 @@ static gboolean load_exc_words(guint32 nr, char *buffer, char* file)
     return TRUE;
 }
 
-static Matrix* InitialEstimate(guint32 Nrow, guint32 Ncolumn, 
+static Matrix* InitialEstimate(gboolean quiet,
+                               guint32 Nrow, guint32 Ncolumn, 
 			       Corpus *corpus1, Corpus *corpus2,
 			       char *excWrds1,	char *excWrds2)
 { 
@@ -67,8 +68,10 @@ static Matrix* InitialEstimate(guint32 Nrow, guint32 Ncolumn,
     unsigned long r, c, l;
     int jjdoneR, jjdoneC;
     CorpusCell *s1, *s2, *sen2;
-    fprintf(stderr, "\nAllocating the sparse matrix (%d x %d):      ",
-	    Nrow, Ncolumn);
+
+    if (!quiet)
+        fprintf(stderr, "\nAllocating the sparse matrix (%d x %d):      ",
+                Nrow, Ncolumn);
 
     /* Alloc matrix */
     matrix = AllocMatrix(Nrow, Ncolumn);
@@ -88,7 +91,9 @@ static Matrix* InitialEstimate(guint32 Nrow, guint32 Ncolumn,
 
     while (s1 != NULL && s2 != NULL) {
 	/* print percentage information */
-	fprintf(stderr, "\b\b\b\b\b%4.1f%%", (float) (cSentence++) * 99.9f / (float) nSentences);
+        if (!quiet)
+            fprintf(stderr, "\b\b\b\b\b%4.1f%%",
+                    (float) (cSentence++) * 99.9f / (float) nSentences);
 
 	l = max(corpus_sentence_length(s1),
 		corpus_sentence_length(s2));
@@ -145,11 +150,22 @@ static Matrix* InitialEstimate(guint32 Nrow, guint32 Ncolumn,
 
     if (s1 != NULL || s2 != NULL)
 	report_error("InitialEstimate: failed to evaluate all sentences");
-    fprintf(stderr, "\b\b\b\b\b\b done \n");
+
+    if (!quiet) fprintf(stderr, "\b\b\b\b\b\b done \n");
 
     return matrix;
 }
 
+void show_help () {
+    printf("Usage:\n"
+           "  nat-initmat [-q] corpusFile1 corpusFile2 matFile\n"
+           "  nat-initmat [-q] corpusFile1 corpusFile2 excludeWrds1 excludeWrds2 matFile\n");
+    printf("Supported options:\n"
+           "  -h shows this help message and exits\n"
+           "  -V shows "PACKAGE" version and exits\n"
+           "  -q activates quiet mode\n"
+           "Check nat-initmat manpage for details.\n");
+}
 
 
 
@@ -166,19 +182,40 @@ int main(int argc, char **argv)
     Corpus *corpus1, *corpus2;
     Matrix *matrix;
     guint32 total1, total2;
+    gboolean quiet = FALSE;
+
+    extern char *optarg;
+    extern int optind;
+    int c;
     
-    if (argc != 4 && argc != 6) {
-	printf("Usage:\n");
-	printf("  initmat corpusFile1 corpusFile2 matFile\n");
-	printf("  initmat corpusFile1 corpusFile2 excludeWrds1 excludeWrds2 matFile\n");
-	return 1;
+    while ((c = getopt(argc, argv, "hqV")) != EOF) {
+        switch (c) {
+        case 'h':
+            show_help();
+            return 0;
+        case 'V':
+            printf(PACKAGE " version " VERSION "\n");
+            return 0;
+        case 'q':
+            quiet = TRUE;
+            break;
+        default:
+            show_help();
+            return 1;
+        }
+    }
+    
+    if (argc != optind + 3 && argc != optind + 5) {
+	printf("nat-initmat: wrong number of arguments\n");
+        show_help();
+        return 1;
     }
     
     corpus1 = corpus_new();
     corpus2 = corpus_new();
 
-    corpus_load(corpus1, argv[1]);
-    corpus_load(corpus2, argv[2]);
+    corpus_load(corpus1, argv[optind + 0]);
+    corpus_load(corpus2, argv[optind + 1]);
 
     if (corpus_sentences_nr(corpus1) != corpus_sentences_nr(corpus2))
 	report_error("initmat.c: lengths do not match");
@@ -189,29 +226,33 @@ int main(int argc, char **argv)
 
     if (argc == 6) {
 	excWrds1 = g_new0(char, total1 + 1);
-	if (!load_exc_words(total1, excWrds1, argv[3]))
+	if (!load_exc_words(total1, excWrds1, argv[optind + 2]))
 	    report_error("initmat.c: error loading excludeWrds1");
 
 	excWrds2 = g_new0(char, total2 + 1);
-	if (!load_exc_words(total2, excWrds2, argv[4])) 
+	if (!load_exc_words(total2, excWrds2, argv[optind + 3])) 
 	    report_error("initmat.c: error loading excludeWrds2");
 
-	matFile = argv[5];
+	matFile = argv[optind + 4];
     } else {
-	matFile = argv[3];
+	matFile = argv[optind + 2];
     }
 
-    matrix = InitialEstimate(total1, total2, corpus1, corpus2, excWrds1, excWrds2);
-
-    if (argc == 6) {
+    matrix = InitialEstimate(quiet, total1, total2, corpus1, corpus2, excWrds1, excWrds2);
+    
+    if (argc == optind + 5) {
 	g_free(excWrds1);
 	g_free(excWrds2);
     }
 
     if (SaveMatrix(matrix, matFile)) report_error("SaveMatrix");
 
-    /* fprintf(stderr, "Matrix total after initial estimate:%9.2f\n", MatrixTotal(matrix, Matrix1)); */
-    fprintf(stderr, "Memory used:%10.1f kb\n\n", (float) BytesInUse(matrix) / 1024.0f);
+    /* fprintf(stderr, 
+       "Matrix total after initial estimate:%9.2f\n", MatrixTotal(matrix, Matrix1)); */
+
+    if (!quiet) {
+        fprintf(stderr, "Memory used:%10.1f kb\n\n", (float) BytesInUse(matrix) / 1024.0f);
+    }
 
     corpus_free(corpus1);
     corpus_free(corpus2);

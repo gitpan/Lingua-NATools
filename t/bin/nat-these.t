@@ -49,7 +49,7 @@ for (@initmatfiles) {
   unlink if -f;
   ok(! -f, "Checking if file $_ was correctly deleted");
 }
-`_build/apps/nat-initmat t/PT.crp t/EN.crp t/PT-EN.mat 2>/dev/null`;
+`_build/apps/nat-initmat -q t/PT.crp t/EN.crp t/PT-EN.mat 2>/dev/null`;
 die "Failed 'nat-initmat t/PT.crp t/EN.crp t/PT-EN.mat'\n" if $?;
 
 for (@initmatfiles) {

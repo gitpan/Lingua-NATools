@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2011  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -73,6 +73,17 @@ static char *my_lowercase(char *sen, gboolean ignore_case) {
     return sen;
 }
 
+void show_help(void) {
+    printf("Usage: nat-pre [-uiq] cp1 cp2 lex1 lex2 crp1 crp2\n");
+    printf("Supported options:\n"
+           "  -h shows this help message and exits\n"
+           "  -V shows "PACKAGE" version and exits\n"
+           "  -v activates verbose mode (incompatible with quiet mode)\n"
+           "  -u activates unicode\n"
+           "  -i activates ignore case (no unicode support)\n"
+           "  -q activates quiet mode\n"
+           "Check nat-pre manpage for details.\n");
+}
 
 static int AddSentence(char **sen, unsigned long len,
 		       WordList* wl, Corpus *Corpus,
@@ -226,11 +237,14 @@ int main(int argc, char **argv)
 
     quiet = FALSE;
 
-    while ((c = getopt(argc, argv, "vqiuV")) != EOF) {
+    while ((c = getopt(argc, argv, "hvqiuV")) != EOF) {
 	switch (c) {
+        case 'h':
+            show_help();
+            return 0;
 	case 'V':
 	    printf(PACKAGE " version " VERSION "\n");
-	    exit(0);
+            return 0;
         case 'i':
             ignore_case = TRUE;
             break;
@@ -244,8 +258,8 @@ int main(int argc, char **argv)
 	    quiet = TRUE;
 	    break;
 	default:
-	    fprintf(stderr, "Unknown option -%c\n", c);
-	    exit(1);
+            show_help();
+            return 1;
 	}
     }
 
@@ -261,8 +275,8 @@ int main(int argc, char **argv)
     }
 
     if (argc != 6 + optind) {
-	printf("%s: wrong number of arguments\n", argv[0]);
-	printf("\tUsage: nat-pre cp1 cp2 lex1 lex2 crp1 crp2\n");
+	printf("nat-pre: wrong number of arguments\n");
+        show_help();
         return 1;
     }
 

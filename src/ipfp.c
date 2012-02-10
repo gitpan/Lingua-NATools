@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -67,6 +67,18 @@ static void printEntropy(struct cMatrix *M, int M1, int empty)
     fprintf(stderr, "  Symmetrical dependency:  U(x,y) = %f\n", uxy);
 }
 #endif
+
+
+void show_help () {
+    printf("Usage:\n"
+           "  nat-ipfp [-q] nsteps crpFile1 crpFile2 matIn matOut\n");
+    printf("Supported options:\n"
+           "  -h shows this help message and exits\n"
+           "  -V shows "PACKAGE" version and exits\n"
+           "  -q activates quiet mode\n"
+           "Check nat-ipfp manpage for details.\n");
+}
+
 
 /* EM algorithm */
 
@@ -182,7 +194,7 @@ static double OddsRatio(double pij, double pi, double pj, double p)
     }
 }
 
-static void EMalgorithm(Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
+static void EMalgorithm(gboolean quiet, Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
 {
     MatrixVal M1, M2;
     double *p  = g_new(double, MAXLEN * MAXLEN);
@@ -207,7 +219,8 @@ static void EMalgorithm(Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
         M1 = MATRIX_2;
         M2 = MATRIX_1;
     }
-    fprintf(stderr, "Step %d of the EM-algorithm:      ", step);
+
+    if (!quiet) fprintf(stderr, "Step %d of the EM-algorithm:      ", step);
 
     ClearMatrix(M, M2);
     k = 0;
@@ -215,7 +228,7 @@ static void EMalgorithm(Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
     s1 = corpus_first_sentence(C1);
     s2 = corpus_first_sentence(C2);
     while (s1 != NULL && s2 != NULL) {
-	fprintf(stderr, "\b\b\b\b\b%4.1f%%", (double) (k++) * 99.9f / (double) length);
+	if (!quiet) fprintf(stderr, "\b\b\b\b\b%4.1f%%", (double) (k++) * 99.9f / (double) length);
 	l = max(corpus_sentence_length(s1),
 		corpus_sentence_length(s2));
 	if (l <= MAXLEN) {
@@ -265,7 +278,7 @@ static void EMalgorithm(Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
 	s1 = corpus_next_sentence(C1);
 	s2 = corpus_next_sentence(C2);
     }
-    printf("\b\b\b\b\bdone \n");
+    if (!quiet) printf("\b\b\b\b\bdone \n");
     
     g_free(p);
     g_free(pi);
@@ -295,56 +308,84 @@ int main(int argc, char **argv)
     double t;
     int Nsteps, step;
 
-    if (argc != 6)
-	report_error("Usage: ipfp nsteps corpusfile1 corpusfile2 dictfilein dictfileout");
+    extern char *optarg;
+    extern int optind;
+    int c;
 
-    printf("\n");
+    gboolean quiet = FALSE;
+    
+    while ((c = getopt(argc, argv, "hqV")) != EOF) {
+        switch (c) {
+        case 'h':
+            show_help();
+            return 0;
+        case 'V':
+            printf(PACKAGE " version " VERSION "\n");
+            return 0;
+        case 'q':
+            quiet = TRUE;
+            break;
+        default:
+            show_help();
+            return 1;
+        }
+    }
+    
+    if (argc != optind + 5) {
+	printf("nat-ipfp: wrong number of arguments\n");
+        show_help();
+        return 1;
+    }
 
     /* check number of steps range */
-    Nsteps = atoi(argv[1]);
+    Nsteps = atoi(argv[optind + 0]);
     if (Nsteps < 1 || Nsteps > 25) report_error("Number of steps out of range");
 
     /* Alloc first corpus structure */
     Corpus1 = corpus_new();
     if (!Corpus1) report_error("Can't alloc Corpus 1 structure");
-    printf("Loading Corpus file 1\n");
-    if (corpus_load(Corpus1, argv[2])) report_error("Can't read corpus 1");
+    if (!quiet) printf("Loading Corpus file 1\n");
+    if (corpus_load(Corpus1, argv[optind + 1])) report_error("Can't read corpus 1");
 
     /* Alloc second corpus structure */
     Corpus2 = corpus_new();
     if (!Corpus2) report_error("Can't alloc Corpus 2 structure");
-    printf("Loading Corpus file 2\n");
-    if (corpus_load(Corpus2, argv[3])) report_error("Can't read corpus 2");
+    if (!quiet) printf("Loading Corpus file 2\n");
+    if (corpus_load(Corpus2, argv[optind + 2])) report_error("Can't read corpus 2");
 
     /* Load matrix from disk */
-    printf("Loading matrix. This can take a while\n");
-    Matrices = LoadMatrix(argv[4]);
+    if (!quiet) printf("Loading matrix. This can take a while\n");
+    Matrices = LoadMatrix(argv[optind + 3]);
     if (!Matrices) report_error("Can't load matrix");
 
     /* Say what we are doing :-) */
     printf("EM-algorithm, model A, Iterative Proportional Fitting\n\n");
 
     /* Show statistics */
-    printf("Initial matrix total:%9.2f\n", MatrixTotal(Matrices, MATRIX_1));
-    printf("Initial memory used:%10.1f kb\n\n", (double) BytesInUse(Matrices) / 1024.0f);
+    if (!quiet) {
+        printf("Initial matrix total:%9.2f\n", MatrixTotal(Matrices, MATRIX_1));
+        printf("Initial memory used:%10.1f kb\n\n", (double) BytesInUse(Matrices) / 1024.0f);
+    }
 
     step = 1;
     while (step <= Nsteps) {
-	EMalgorithm(Matrices, Corpus1, Corpus2, step, (!NULLWORD && step == Nsteps));
+	EMalgorithm(quiet, Matrices, Corpus1, Corpus2, step, (!NULLWORD && step == Nsteps));
 	step++;
 	t = CompareMatrices(Matrices);
-	printf("Matrix mean difference: %f\n", t);
+	if (!quiet) printf("Matrix mean difference: %f\n", t);
 	
 	if (step % 2) t = MatrixTotal(Matrices, MATRIX_1);
 	else          t = MatrixTotal(Matrices, MATRIX_2);
 
-	printf("Matrix total:%9.2f\n", t);
-	printf("Memory used:%10.1f kb\n\n", (double) BytesInUse(Matrices) / 1024.0f);
+        if (!quiet) {
+            printf("Matrix total:%9.2f\n", t);
+            printf("Memory used:%10.1f kb\n\n", (double) BytesInUse(Matrices) / 1024.0f);
+        }
     }
 
     if (Nsteps % 2) CopyMatrix(Matrices, MATRIX_1);
 
-    if (SaveMatrix(Matrices, argv[5])) report_error("SaveMatrix");
+    if (SaveMatrix(Matrices, argv[optind + 4])) report_error("SaveMatrix");
 
     /* Free structures */
     corpus_free(Corpus1);
