@@ -1,7 +1,10 @@
-0.6.0_3 - Fri Feb 10 12:26:01 WET 2012
+0.6.0     Fri Feb 10 12:26:01 WET 2012
+ - releasing as stable.
+
+0.6.0_3   Fri Feb 10 12:26:01 WET 2012
  - fix call to yapp command line.
 
-0.6.0_2 - Wed Feb  8 14:10:11 WET 2012
+0.6.0_2   Wed Feb  8 14:10:11 WET 2012
  - Fixed dependency version on Config::AutoConf.
 
 0.6.0_1 - Tue Feb  7 14:10:11 WET 2012 
