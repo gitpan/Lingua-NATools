@@ -1,3 +1,6 @@
+0.6.1     Tue Feb 14 21:45:19 WET 2012
+ - Fixed dependency on Capture::Tiny.
+
 0.6.0     Fri Feb 10 12:26:01 WET 2012
  - releasing as stable.
 

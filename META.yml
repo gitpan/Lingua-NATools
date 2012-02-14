@@ -11,7 +11,7 @@ build_requires:
   Pod::Man: 0
   Test::More: 0
 configure_requires:
-  Capture::Tiny: 0
+  Capture::Tiny: 0.15
   Config::AutoConf: 0.19
   ExtUtils::CBuilder: 0.27
   ExtUtils::LibBuilder: 0.01
@@ -27,7 +27,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.6.0
+    version: v0.6.1
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: 0.02
@@ -109,4 +109,4 @@ requires:
   XML::TMX: 0.16
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.6.0
+version: v0.6.1
