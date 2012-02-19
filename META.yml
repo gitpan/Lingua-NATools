@@ -8,6 +8,7 @@ build_requires:
   ExtUtils::CBuilder: 0.27
   ExtUtils::LibBuilder: 0.01
   Module::Build: 0.3603
+  Parse::Yapp::Driver: 1.05
   Pod::Man: 0
   Test::More: 0
 configure_requires:
@@ -27,7 +28,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.6.1
+    version: v0.6.2
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: 0.02
@@ -96,7 +97,6 @@ requires:
   MLDBM: 2.00
   Memoize: 0
   POSIX: 0
-  Parse::Yapp::Driver: 1.05
   Storable: 2.04
   Term::ReadLine: 1.01
   Test::Harness: 2.26
@@ -109,4 +109,4 @@ requires:
   XML::TMX: 0.16
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.6.1
+version: v0.6.2

@@ -1,3 +1,6 @@
+0.6.2     Sun Feb 19 21:19:29 WET 2012
+ - Parse::Yapp is a build dependency.
+
 0.6.1     Tue Feb 14 21:45:19 WET 2012
  - Fixed dependency on Capture::Tiny.
 
