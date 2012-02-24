@@ -57,6 +57,7 @@ my $builder = MyBuilder->new
                 'IO::Uncompress::UnXz' => '2.030',
                 'IO::Compress::Xz'     => '2.030',
                 'List::MoreUtils'      => '0',
+                'Parse::Yapp::Driver'  => '1.05',
                },
    configure_requires => {
                           'Config::AutoConf'   => '0.19',
