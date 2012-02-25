@@ -63,6 +63,7 @@ my $builder = MyBuilder->new
                           'Config::AutoConf'   => '0.19',
                           'ExtUtils::PkgConfig' => '1.12',
                           'Capture::Tiny'        => '0.15',
+                          'Parse::Yapp::Driver'  => '1.05',
                           'ExtUtils::CBuilder' => '0.27',
                           'ExtUtils::LibBuilder' => '0.01',
                           'Module::Build'      => '0.3603',

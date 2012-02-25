@@ -18,6 +18,7 @@ configure_requires:
   ExtUtils::LibBuilder: 0.01
   ExtUtils::PkgConfig: 1.12
   Module::Build: 0.3603
+  Parse::Yapp::Driver: 1.05
 dynamic_config: 1
 generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.120351'
 license: perl
@@ -28,7 +29,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.6.3
+    version: v0.6.4
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: 0.02
@@ -110,4 +111,4 @@ requires:
   XML::TMX: 0.16
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.6.3
+version: v0.6.4
