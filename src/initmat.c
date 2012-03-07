@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "standard.h"
-#include "corpus.h"
+#include <NATools/corpus.h>
 #include "matrix.h"
 
 
@@ -36,15 +36,15 @@
 
 /* #define SAVE_DOTS 1 */
 
-static gboolean load_exc_words(guint32 nr, char *buffer, char* file)
+static nat_boolean_t load_exc_words(nat_uint32_t nr, char *buffer, char* file)
 {
     FILE *fd;
-    guint32 id;
+    nat_uint32_t id;
     fd = fopen(file, "rb");
     if (!fd) return FALSE;
 
     do {
-	if (fread(&id, sizeof(guint32), 1, fd)) {
+	if (fread(&id, sizeof(nat_uint32_t), 1, fd)) {
 	    if (id >= nr) return FALSE;
 	    buffer[id] = 1;
 	}
@@ -53,8 +53,8 @@ static gboolean load_exc_words(guint32 nr, char *buffer, char* file)
     return TRUE;
 }
 
-static Matrix* InitialEstimate(gboolean quiet,
-                               guint32 Nrow, guint32 Ncolumn, 
+static Matrix* InitialEstimate(nat_boolean_t quiet,
+                               nat_uint32_t Nrow, nat_uint32_t Ncolumn, 
 			       Corpus *corpus1, Corpus *corpus2,
 			       char *excWrds1,	char *excWrds2)
 { 
@@ -181,8 +181,8 @@ int main(int argc, char **argv)
     char *matFile;
     Corpus *corpus1, *corpus2;
     Matrix *matrix;
-    guint32 total1, total2;
-    gboolean quiet = FALSE;
+    nat_uint32_t total1, total2;
+    nat_boolean_t quiet = FALSE;
 
     extern char *optarg;
     extern int optind;

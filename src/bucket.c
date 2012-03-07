@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include "bucket.h"
+#include <glib.h>
 
 /**
  * @file
@@ -39,7 +40,7 @@
  * @param fh the already opened file handle used to dump the bucket contents
  * @return the newly created and empty bucket
  */
-Bucket *bucket_new(guint32 size, FILE *fh)
+Bucket *bucket_new(nat_uint32_t size, FILE *fh)
 {
     Bucket *self;
 
@@ -47,7 +48,7 @@ Bucket *bucket_new(guint32 size, FILE *fh)
     self->size = size;
     self->ptr = 0;
     self->fh = fh;
-    self->buffer = g_new(guint32, size);
+    self->buffer = g_new(nat_uint32_t, size);
     return self;
 }
 
@@ -63,7 +64,7 @@ Bucket *bucket_new(guint32 size, FILE *fh)
 void bucket_free(Bucket *self)
 {
     if (self->ptr)
-	fwrite(self->buffer, sizeof(guint32), self->ptr, self->fh);
+	fwrite(self->buffer, sizeof(nat_uint32_t), self->ptr, self->fh);
     g_free(self->buffer);
     g_free(self);
 }
@@ -79,10 +80,10 @@ void bucket_free(Bucket *self)
  * @param val the unsigned integer to be added
  * @return the bucket object with the value added.
  */
-Bucket *bucket_add(Bucket *self, guint32 val)
+Bucket *bucket_add(Bucket *self, nat_uint32_t val)
 {
     if (self->ptr == self->size) {
-	fwrite(self->buffer, sizeof(guint32), self->ptr, self->fh);
+	fwrite(self->buffer, sizeof(nat_uint32_t), self->ptr, self->fh);
 	self->ptr = 0;
     }
     self->buffer[self->ptr++] = val;

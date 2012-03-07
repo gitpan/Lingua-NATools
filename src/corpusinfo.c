@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,18 +23,18 @@
 #include <stdlib.h>
 #include "corpusinfo.h"
 
-static guint32* load_offsets(CorpusInfo *corpus, char *file, guint* size) {
-    guint32 x;
-    guint32 *bf;
+static nat_uint32_t* load_offsets(CorpusInfo *corpus, char *file, nat_uint32_t* size) {
+    nat_uint32_t x;
+    nat_uint32_t *bf;
     FILE *fd;
     
     fd = fopen(file, "r");
     if (!fd) return NULL;
 
-    fread(&x, sizeof(guint32), 1, fd);
+    fread(&x, sizeof(nat_uint32_t), 1, fd);
     if (size) *size = x;
-    bf = g_new(guint32, x);
-    fread(bf, sizeof(guint32), x, fd);
+    bf = g_new(nat_uint32_t, x);
+    fread(bf, sizeof(nat_uint32_t), x, fd);
     fclose(fd);
 
     return bf;
@@ -43,7 +43,7 @@ static guint32* load_offsets(CorpusInfo *corpus, char *file, guint* size) {
 CorpusInfo *corpus_info_new(char *filepath) {
     CorpusInfo *self;
     char *temp_file;
-    gint i;
+    int i;
 
     self = g_new0(CorpusInfo, 1);
 
@@ -62,17 +62,17 @@ CorpusInfo *corpus_info_new(char *filepath) {
 
     /* Init the value of chunks */
     temp_file = g_hash_table_lookup(self->config, "nr-chunks");
-    self->nrChunks = (guchar)(temp_file?atoi(temp_file):1);
+    self->nrChunks = (nat_uchar_t)(temp_file?atoi(temp_file):1);
 
     /* SOURCE LEX */
     temp_file = g_strdup_printf("%s/source.lex", filepath);
-    self->SourceLex = word_list_load(temp_file, &self->SourceLexIds);
+    self->SourceLex = words_load(temp_file);
     if (!self->SourceLex) report_error("Can't open file %s", temp_file);
     g_free(temp_file);
 
     /* TARGET LEX */
     temp_file = g_strdup_printf("%s/target.lex", filepath);
-    self->TargetLex = word_list_load(temp_file, &self->TargetLexIds);
+    self->TargetLex = words_load(temp_file);
     if (!self->TargetLex) report_error("Can't open file %s", temp_file);
     g_free(temp_file);
 
@@ -118,7 +118,8 @@ CorpusInfo *corpus_info_new(char *filepath) {
     	    g_free(temp_file);
 
     	    temp_file = g_strdup_printf("%s/source.%03d.crp.index", filepath, i);
-    	    self->chunks[i-1].source_offset = load_offsets(self, temp_file, &(self->chunks[i-1].size));
+    	    self->chunks[i-1].source_offset = load_offsets(self, temp_file,
+                                                           &(self->chunks[i-1].size));
     	    if (!self->chunks[i-1].source_offset) report_error("Can't open file %s", temp_file);
     	    g_free(temp_file);
 
@@ -149,16 +150,16 @@ CorpusInfo *corpus_info_new(char *filepath) {
 }
 
 void corpus_info_free(CorpusInfo *corpus) {
-    gint i;
+    int i;
 
     if (corpus->config)
 	    g_hash_table_destroy(corpus->config);
 
     if (corpus->SourceLex)
-	    word_list_free(corpus->SourceLex);
+	    words_free(corpus->SourceLex);
 
     if (corpus->TargetLex)
-	    word_list_free(corpus->TargetLex);
+	    words_free(corpus->TargetLex);
 
     if (corpus->SourceIdx) 
 	    inv_index_compact_free(corpus->SourceIdx);
@@ -197,7 +198,7 @@ void corpus_info_free(CorpusInfo *corpus) {
 }
 
 
-gboolean corpus_info_has_ngrams(CorpusInfo *self) {
+nat_boolean_t corpus_info_has_ngrams(CorpusInfo *self) {
     char *temp_file;
 
     temp_file = g_hash_table_lookup(self->config, "n-grams");

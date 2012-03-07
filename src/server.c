@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <ctype.h>
+#include <wchar.h>
+#include <wctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -32,10 +33,8 @@
 #include <time.h>
 #include <stdlib.h>
 
-
-
-#include <glib.h>
-
+#include <NATools.h>
+#include "unicode.h"
 #include "parseini.h"
 #include "corpusinfo.h"
 #include "srvshared.h"
@@ -45,7 +44,7 @@
 int sockfd, fd;
 
 GHashTable *CORPORA;
-gint32 LAST_CORPORA = 0;
+nat_int_t LAST_CORPORA = 0;
 
 void LOG(char* log, ...) {
     char stime[80];
@@ -64,38 +63,39 @@ void LOG(char* log, ...) {
 }
 
 #if DEBUG
-static guint32 length(const guint32 *needle) {
-    guint32 ans = 0;
+static nat_uint32_t length(const nat_uint32_t *needle) {
+    nat_uint32_t ans = 0;
     while(needle[ans]) { ans++; }
     return ans;
 }
 #endif
 
 
-void parse(int fd, char* buf, char* dir);
+void parse(int fd, wchar_t* buf, char* dir);
 
-static int dump_corpora_list(int fd, gint last, GHashTable *corpora) {
-    gboolean toexit = FALSE;
-    gchar sbuf[1024];
-    gint i;
+static int dump_corpora_list(int fd, int last, GHashTable *corpora) {
+    nat_boolean_t toexit = FALSE;
+    char buf[1024];
+    int i;
 
-    sprintf(sbuf, "%d\n", last);
-    if (write(fd, sbuf, strlen(sbuf)) < 0) 
+    snprintf(buf, 1024, "%d\n", last);
+    if (write(fd, buf, strlen(buf)) < 0) 
 	toexit = TRUE;
 
     for (i = 1; i <= last && !toexit; i++) {
-	sprintf(sbuf, "[%d] %s\n", 
+	snprintf(buf, 1024, "[%d] %s\n", 
 		i,
-		(char*)g_hash_table_lookup(((CorpusInfo*)g_hash_table_lookup(corpora, &i))->config,"name"));
-	if (write(fd, sbuf, strlen(sbuf)) < 0) 
+		(char*)g_hash_table_lookup(((CorpusInfo*)g_hash_table_lookup(corpora, &i))->config,
+                                           "name"));
+	if (write(fd, buf, strlen(buf)) < 0) 
 	    toexit = TRUE;
     }
     return toexit;
 }
 
 static int dump_conf(CorpusInfo *corpus, int fd, char *key) {
-    gchar sbuf[1024];
-    gboolean toexit = FALSE;
+    char sbuf[1024];
+    nat_boolean_t toexit = FALSE;
 
     sprintf(sbuf, "%s\n", (char*)g_hash_table_lookup(corpus->config, key));
     if (write(fd, sbuf, strlen(sbuf)) < 0) 
@@ -105,9 +105,8 @@ static int dump_conf(CorpusInfo *corpus, int fd, char *key) {
 }
 
 static void dump_each_conf(gpointer key, gpointer value, gpointer user_data) {
-    gchar sbuf[1024];
+    char sbuf[1024];
     int *fd = (int*)user_data;
-
     sprintf(sbuf, "%s=%s\n", (char*)key, (char*)value);
     write(*fd, sbuf, strlen(sbuf));
 }
@@ -119,7 +118,7 @@ static int dump_all_conf(CorpusInfo *corpus, int fd) {
     return 0;
 }
 
-static CorpusInfo* get_corpus(gint id) {
+static CorpusInfo* get_corpus(int id) {
     if (id > LAST_CORPORA)
 	return NULL;
     return (CorpusInfo*)g_hash_table_lookup(CORPORA, &id);
@@ -129,32 +128,32 @@ static CorpusInfo* get_corpus(gint id) {
 
 
 
-void dump_dict_full(int fd, char *word, guint32 wid, gint32 dir, CorpusInfo *crp)
+void dump_dict_full(int fd, wchar_t *word, nat_uint32_t wid, nat_int_t dir, CorpusInfo *crp)
 {
-    char sbuf[300];
-    guint32 j;
-    guint32 twid;
-    WordLstNode **T;
+    char sbuf[600];
+    nat_uint32_t j;
+    nat_uint32_t twid;
+    Words *T;
     Dictionary *D;
     float prob;
 
-    if (strcmp(word, "")==0) {
+    if (wcscmp(word, L"")==0) {
 	DONE(fd); 
 	return;
     }
 
     if (dir > 0) {
-        T = crp->TargetLexIds;
+        T = crp->TargetLex;
         D = crp->SourceTarget;
     } else {
-        T = crp->SourceLexIds;
+        T = crp->SourceLex;
         D = crp->TargetSource;
     }
     
-    sprintf(sbuf, "%s\n", word);
+    snprintf(sbuf, 600, "%ls\n", word);
     write(fd, sbuf, strlen(sbuf));
 
-    sprintf(sbuf, "%u\n", dictionary_get_occ(D, wid));
+    snprintf(sbuf, 600, "%u\n", dictionary_get_occ(D, wid));
     write(fd, sbuf, strlen(sbuf));
 
     for (j = 0; j < MAXENTRY; j++) {
@@ -163,7 +162,7 @@ void dump_dict_full(int fd, char *word, guint32 wid, gint32 dir, CorpusInfo *crp
 	twid = dictionary_get_id(D, wid, j);
 	if (twid) {
 	    prob = dictionary_get_val(D, wid, j);
-	    sprintf(sbuf, "%.6f %s\n", prob, word_list_get_by_id(T, twid));
+	    snprintf(sbuf, 600, "%.6f %ls\n", prob, words_get_by_id(T, twid));
 	    write(fd, sbuf, strlen(sbuf));
 	}
     }
@@ -175,31 +174,31 @@ void dump_dict_full(int fd, char *word, guint32 wid, gint32 dir, CorpusInfo *crp
 
 
 
-void dump_dict_n(int fd, char* word, gint32 dir, CorpusInfo* crp) {
-    char *w;
-    char sbuf[300];
-    guint32 wid;
+void dump_dict_n(int fd, wchar_t* word, nat_int_t dir, CorpusInfo* crp) {
+    wchar_t *w;
+    wchar_t sbuf[300];
+    nat_uint32_t wid;
 
-    WordLstNode **S;
+    Words *S;
 
-    S = (dir > 0) ?  crp->SourceLexIds : crp->TargetLexIds;
-    wid = atoi(word);
-    w = strdup(word_list_get_by_id(S, wid));
+    S = (dir > 0) ?  crp->SourceLex : crp->TargetLex;
+    wid = atoi((char*)word); // this should just work
+    w = wcsdup(words_get_by_id(S, wid));
     dump_dict_full(fd, sbuf, wid, dir, crp);
     free(w);
 }
 
-void dump_dict_w(int fd, char* word, gint32 dir, CorpusInfo* crp) {
-    guint32 wid;
-    WordList *S;
+void dump_dict_w(int fd, wchar_t* word, nat_int_t dir, CorpusInfo* crp) {
+    nat_uint32_t wid;
+    Words *S;
 
-    if (strcmp(word, "")==0) {
+    if (wcscmp(word, L"")==0) {
 	DONE(fd); 
 	return;
     }
 
     S = (dir > 0) ? crp->SourceLex : crp->TargetLex ;
-    wid = word_list_get_id(S, word);
+    wid = words_get_id(S, word);
     if (!wid) { 
 	ERROR(fd);
 	return;
@@ -225,9 +224,9 @@ void handle_sigint(int x) {
     exit(0);
 }
 
-int* int_ptr(gint x) {
-    gint *y;
-    y = g_new(gint, 1);
+int* int_ptr(int x) {
+    int *y;
+    y = g_new(int, 1);
     *y = x;
     return y;
 }
@@ -242,10 +241,13 @@ int main(int argc, char *argv[]) {
     //    char *host = "193.136.19.131";
 
     char buf[1024];
+    wchar_t wbuf[1024];
     size_t n;
     unsigned int size = sizeof(client);
     int zbr = 1;
     FILE *f = NULL;
+
+    init_locale();
 
     if (argc != 2) {
 	printf("Usage: nat-server <config-file>\n");
@@ -263,9 +265,14 @@ int main(int argc, char *argv[]) {
 	    fgets(buf, 1024, f);
 	    if (!feof(f)) {
 		if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ' ') continue;
-		chomp(buf);
+
+                // strip newline if there is one
+                while (buf[strlen(buf) - 1] == ' ' || buf[strlen(buf) - 1] == '\n' ||
+                       buf[strlen(buf) - 1] == '/' || buf[strlen(buf) - 1] == '\t')
+                    buf[strlen(buf) - 1] = '\0';
+
 		LOG("Loading corpus from %s [%d]", buf, ++LAST_CORPORA);
-		tmp_corpus = corpus_info_new(buf);
+		tmp_corpus = corpus_info_new(buf); 
 		g_hash_table_insert(CORPORA, int_ptr(LAST_CORPORA), tmp_corpus);
 	    }
 	}
@@ -324,9 +331,13 @@ int main(int argc, char *argv[]) {
 #endif
 	    alarm(50);
 	    n = read(fd, buf, 1024);
+
 	    if ( n > 0 ) {
-		parse(fd, buf, argv[1]);
-		buf[0] = '\0';
+                // buf to wchar_t ?
+                swprintf(wbuf, 1024, L"%s", buf);
+
+		parse(fd, wbuf, argv[1]);
+		wbuf[0] = L'\0';
 		n = 0;
 	    }
 	    alarm(0);
@@ -358,116 +369,118 @@ void play(int fd) {
 }
 
 
-void parse(int fd, char* buf, char* dir)
+void parse(int fd, wchar_t* buf, char* dir)
 {
     /* word word */
 
     CorpusInfo *corpus = NULL;
-
+    wchar_t *ptr;
     int direction = 0;
-    gboolean exact_match = FALSE;
-    gboolean both = FALSE;
-    char words[50][150];
+    nat_boolean_t exact_match = FALSE;
+    nat_boolean_t both = FALSE;
+    wchar_t words[50][150];
     int i = 0; 
-    char *token = NULL;
+    wchar_t *token = NULL;
+    char tmp[150];
 		
     chomp(buf);
 
     for (i=0;i<50;i++)
-        strcpy(words[i],"");
+        wcscpy(words[i], L"");
     i = 0;
 
-    if (strcmp(buf, "") == 0) return;
+    if (wcscmp(buf, L"") == 0) return;
 
 #if DEBUG
     LOG("Request was [%s]", buf);
 #endif
 
-    token = strtok(buf, " ");
+    token = wcstok(buf, L" ", &ptr);
     while(token) {
-    	strcpy(words[i], token);
+    	wcscpy(words[i], token);
     	i++;
-    	token = strtok(NULL, " ");
+    	token = wcstok(NULL, L" ", &ptr);
     }
 
-    if (strncmp(words[0], "LIST", 4) == 0) {
+    if (wcsncmp(words[0], L"LIST", 4) == 0) {
     	dump_corpora_list(fd, LAST_CORPORA, CORPORA);
     	return;
-    } else if (strncmp(words[0], "??", 2) == 0) {
-        dump_all_conf(get_corpus(atoi(words[1])), fd);
+    } else if (wcsncmp(words[0], L"??", 2) == 0) {
+        dump_all_conf(get_corpus(atoi((char*)words[1])), fd);
         return;
-    } else if (strncmp(words[0], "?", 1) == 0) {
-    	dump_conf(get_corpus(atoi(words[1])), fd, words[2]);
+    } else if (wcsncmp(words[0], L"?", 1) == 0) {
+        sprintf(tmp, "%ls", words[2]);
+    	dump_conf(get_corpus(atoi((char*)words[1])), fd, tmp);
     	return;
-    } else if (strncmp(words[0], "~>", 2) == 0) {
-    	corpus = get_corpus(atoi(words[1]));
+    } else if (wcsncmp(words[0], L"~>", 2) == 0) {
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_dict_w(fd, words[2], 1, corpus);
     	return;
-    } else if (strncmp(words[0], "~#>", 3) == 0) {
-    	corpus = get_corpus(atoi(words[1]));
+    } else if (wcsncmp(words[0], L"~#>", 3) == 0) {
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_dict_n(fd, words[2], 1, corpus);
     	return;
-    } else if (strncmp(words[0], "<~", 2) == 0) {
-    	corpus = get_corpus(atoi(words[1]));
+    } else if (wcsncmp(words[0], L"<~", 2) == 0) {
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_dict_w(fd, words[2], -1, corpus);
     	return;
-    } else if (strncmp(words[0], "<#~", 3) == 0) {
-    	corpus = get_corpus(atoi(words[1]));
+    } else if (wcsncmp(words[0], L"<#~", 3) == 0) {
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_dict_n(fd, words[2], -1, corpus);
     	return;
-    } else if (strncmp(words[0], "<->", 3) == 0) {
+    } else if (wcsncmp(words[0], L"<->", 3) == 0) {
     	direction = 1;
     	both = TRUE;
     	exact_match = FALSE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], "<=>", 3) == 0) {
+    } else if (wcsncmp(words[0], L"<=>", 3) == 0) {
     	direction = 1;
     	both = TRUE;
     	exact_match = TRUE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], "<-", 2) == 0) {
+    } else if (wcsncmp(words[0], L"<-", 2) == 0) {
     	direction = -1;
     	both = FALSE;
     	exact_match = FALSE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], "->", 2) == 0) {
+    } else if (wcsncmp(words[0], L"->", 2) == 0) {
     	direction = 1;
     	both = FALSE;
     	exact_match = FALSE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], "<=", 2) == 0) {
+    } else if (wcsncmp(words[0], L"<=", 2) == 0) {
     	direction = -1;
     	both = FALSE;
     	exact_match = TRUE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], "=>", 2) == 0) {
+    } else if (wcsncmp(words[0], L"=>", 2) == 0) {
     	direction = 1;
     	both = FALSE;
     	exact_match = TRUE;
 
-    	corpus = get_corpus(atoi(words[1]));
+    	corpus = get_corpus(atoi((char*)words[1]));
     	dump_conc(fd, corpus, direction, both, exact_match, words, i);
-    } else if (strncmp(words[0], ":>", 2) == 0) {
+    } else if (wcsncmp(words[0], L":>", 2) == 0) {
         direction = 1;
-        corpus = get_corpus(atoi(words[1]));
+        corpus = get_corpus(atoi((char*)words[1]));
         dump_ngrams(fd, corpus, direction, words, i );
 
-    } else if (strncmp(words[0], "<:", 2) == 0) {
+    } else if (wcsncmp(words[0], L"<:", 2) == 0) {
         direction = -1;
-        corpus = get_corpus(atoi(words[1]));
+        corpus = get_corpus(atoi((char*)words[1]));
         dump_ngrams(fd, corpus, direction, words, i );
 
-    } else if (strncmp(words[0], "GET", 3) == 0) {
+    } else if (wcsncmp(words[0], L"GET", 3) == 0) {
     	LOG("Playing http server");
     	play(fd);
     	return;

@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "words.h"
+#include <NATools/words.h>
+#include <glib.h>
+#include <wchar.h>
 
-char* chomp(char *str) {
-    char *rts = str;
+#include "unicode.c"
+
+wchar_t* chomp(wchar_t *str) {
+    wchar_t *rts = str;
     while(*str) {
-	if (*str == '\n') {
-	    *str = '\0';
+	if (*str == L'\n') {
+	    *str = L'\0';
 	}
 	str++;
     }
@@ -14,43 +18,45 @@ char* chomp(char *str) {
 }
 
 int main(void) {
-    char buff[100];
-    WordList *lst;
+    wchar_t buff[100];
+    Words *lst;
     FILE *fd;
 
-    lst = word_list_new();
+    init_locale();
+
+    lst = words_new();
     printf("ok 1\n");
 
     fd = fopen("t/bin/words.input", "r");
     if (!fd) return 1;
 
     while(!feof(fd)) {
-	fgets(buff, 100, fd);
+	fgetws(buff, 100, fd);
 	chomp(buff);
 	if (!feof(fd)) {
-	    word_list_add_word(lst, g_strdup(buff));
+	    words_add_word(lst, wcsdup(buff));
 	}
     }
     fclose(fd);
     printf("ok 2\n");
 
-    if (word_list_save(lst, "t/bin/words.output.bin") != TRUE) return 1;
+    if (words_save(lst, "t/bin/words.output.bin") != TRUE) return 1;
 
     printf("ok 3\n");
 
-    word_list_free(lst);
+    words_free(lst);
 
-    lst = word_list_load("t/bin/words.output.bin", NULL);
+    lst = words_quick_load("t/bin/words.output.bin");
     if (!lst) return 1;
 
     printf("ok 4\n");
 
     fd = fopen("t/bin/words.input", "r");
     while(!feof(fd)) {
-	fgets(buff, 100, fd);
+	fgetws(buff, 100, fd);
 	if (!feof(fd)) {
-	    if (word_list_get_id(lst, chomp(buff)) == 0) {
-		fprintf(stderr, "Word %s returned 0\n", buff);
+	    if (words_get_id(lst, chomp(buff)) == 0) {
+		fprintf(stderr, "Word %ls returned 0\n", buff);
 		return 1;
 	    }
 	}

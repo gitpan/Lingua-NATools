@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,7 @@
 #ifndef __NATDICT_H__
 #define __NATDICT_H__
 
-#include <glib.h>
-
+#include "NATools.h"
 #include "dictionary.h"
 #include "natlexicon.h"
 
@@ -37,9 +36,9 @@
  */
 typedef struct _NATDict {
     /** Dictionary source language */
-    gchar      *source_language;
+    char      *source_language;
     /** Dictionary target language */
-    gchar      *target_language;
+    char      *target_language;
 
     /** Dictionary source lexicon object */
     NATLexicon *source_lexicon;
@@ -53,32 +52,16 @@ typedef struct _NATDict {
 } NATDict;
 
 
-NATDict*           natdict_open              (const gchar   *filename);
-
-gint32             natdict_save              (NATDict       *self,
-					      const gchar   *filename);
-
-NATDict*           natdict_new               (const gchar   *source_language,
-					      const gchar   *target_language);
-
-void               natdict_perldump          (NATDict       *self);
-
-NATDict*           natdict_add               (NATDict       *dic1,
-					      NATDict       *dic2);
-
-guint32            natdict_id_from_word      (NATDict       *self,
-					      gboolean       language,
-					      const gchar   *word);
-
-gchar*             natdict_word_from_id      (NATDict       *self,
-					      gboolean       language,
-					      guint32        id);
-
-NATLexicon*        natdict_load_lexicon               (FILE            *fh);
-
-guint32  natdict_word_count(NATDict *self, gboolean language, guint32 id);
-
-float  natdict_dictionary_get_val(NATDict *self, gboolean language, guint32 wid, guint32 pos);
-guint32  natdict_dictionary_get_id(NATDict *self, gboolean language, guint32 wid, guint32 pos);
+nat_int_t    natdict_save(NATDict *self, const char *filename);
+NATDict*     natdict_open(const char *filename);
+NATDict*     natdict_new(const char *source_language, const char *target_language);
+void         natdict_perldump(NATDict *self);
+NATDict*     natdict_add(NATDict *dic1, NATDict *dic2);
+nat_uint32_t natdict_id_from_word(NATDict *self, nat_boolean_t language, const wchar_t *word);
+wchar_t*     natdict_word_from_id(NATDict *self, nat_boolean_t language, nat_uint32_t id);
+NATLexicon*  natdict_load_lexicon(FILE *fh);
+nat_uint32_t natdict_word_count(NATDict *self, nat_boolean_t language, nat_uint32_t id);
+float        natdict_dictionary_get_val(NATDict *self, nat_boolean_t language, nat_uint32_t wid, nat_uint32_t pos);
+nat_uint32_t natdict_dictionary_get_id(NATDict *self, nat_boolean_t language, nat_uint32_t wid, nat_uint32_t pos);
 
 #endif /* __NATDICT_H__ */

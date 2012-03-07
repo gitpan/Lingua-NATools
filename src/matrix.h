@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,27 +75,27 @@ typedef enum {
  */
 typedef struct cCell {
     /** number of the column */
-    guint32   column;
+    nat_uint32_t   column;
     /** 
      * @brief value1
      *
      * @todo explain why value1 and value2
      */
-    guint32   value1;
+    nat_uint32_t   value1;
     /** 
      * @brief value2
      *
      * @todo explain why value1 and value2
      */
-    guint32   value2;
-} Cell;
+    nat_uint32_t   value2;
+} __attribute__((packed)) Cell;
 
 /**
  * @brief Data structure for each sparse matrix row
  */
 typedef struct cRow {
     /** number of cells */
-    guint32   length;
+    nat_uint32_t   length;
     /** array of cells */
     Cell     *cells;
 } Row;
@@ -105,15 +105,15 @@ typedef struct cRow {
  */
 typedef struct cMatrix {
     /** number of rows in the matrix  */
-    guint32   Nrows;
+    nat_uint32_t   Nrows;
     /** number of columns int the matrix  */
-    guint32   Ncolumns;
+    nat_uint32_t   Ncolumns;
     /** array with pointers for each row information  */
     Row      *rows;
 } Matrix;
 
-Matrix*            AllocMatrix           (guint32       Nrow,
-					  guint32       Ncolumn);
+Matrix*            AllocMatrix           (nat_uint32_t       Nrow,
+					  nat_uint32_t       Ncolumn);
 
 void               FreeMatrix            (Matrix       *matrix);
 
@@ -121,20 +121,20 @@ void               FreeMatrix            (Matrix       *matrix);
 int                PutValue              (Matrix       *matrix,
 					  MatrixVal     Ma,
 					  float         f,
-					  guint32       r,
-					  guint32       c);
+					  nat_uint32_t       r,
+					  nat_uint32_t       c);
 */
 
 int                IncValue              (Matrix       *matrix,
 					  MatrixVal     Ma,
 					  float         incf,
-					  guint32       r,
-					  guint32       c);
+					  nat_uint32_t       r,
+					  nat_uint32_t       c);
 
 float              GetValue              (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32       r,
-					  guint32       c);
+					  nat_uint32_t       r,
+					  nat_uint32_t       c);
 
 Matrix*            LoadMatrix            (char         *filename);
 
@@ -154,42 +154,42 @@ void               MatrixEntropy         (Matrix       *matrix,
 
 float              GetRow                (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32       r,
-					  guint32      *c,
+					  nat_uint32_t       r,
+					  nat_uint32_t      *c,
 					  float        *f);
 
 /*
 float              GetRowMax             (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32       r,
-					  guint32      *c,
+					  nat_uint32_t       r,
+					  nat_uint32_t      *c,
 					  float        *f,
-					  guint32       max);
+					  nat_uint32_t       max);
 */
 
 /*
 float              GetColumnMax          (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32       c,
-					  guint32      *r,
+					  nat_uint32_t       c,
+					  nat_uint32_t      *r,
 					  float        *f,
-					  guint32       max);
+					  nat_uint32_t       max);
 */
 
 int                GetPartialMatrix      (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32      *r,
-					  guint32      *c,
+					  nat_uint32_t      *r,
+					  nat_uint32_t      *c,
 					  double       *M,
-					  guint32       max);
+					  nat_uint32_t       max);
 
 /*
 int                GetConditionalMatrix  (Matrix       *matrix,
 					  MatrixVal     Ma, 
-					  guint32      *r,
-					  guint32      *c,
+					  nat_uint32_t      *r,
+					  nat_uint32_t      *c,
 					  float        *M,
-					  guint32       max);
+					  nat_uint32_t       max);
 */
 
 void               ClearMatrix           (Matrix       *matrix,
@@ -208,6 +208,6 @@ void               ColumnTotals          (Matrix       *matrix,
 					  MatrixVal     Ma,
 					  float        *cf);
 
-guint32            BytesInUse            (Matrix       *matrix);
+nat_uint32_t            BytesInUse            (Matrix       *matrix);
 
 #endif /* __MATRIX_H__ */

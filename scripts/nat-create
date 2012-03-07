@@ -32,15 +32,15 @@ use Lingua::NATools::Config;
 use Cwd;
 
 our ($tmx, $d, $q, $langs, $tokenize, $id, $ngrams, $h, $noEM, $ipfp,
-     $samplea, $sampleb, $i, $utf8, $v, $csize);
+     $samplea, $sampleb, $i, $v, $csize);
 
 if ($h || !@ARGV) {
   print "nat-create: creates a NATools corpus, and extracts its PTD.\n\n";
-  print "\tnat-create [-q] [-langs=L1..L2] [-tokenize] [-ngrams] [-utf8]\n";
+  print "\tnat-create [-q] [-langs=L1..L2] [-tokenize] [-ngrams]\n";
   print "\t           [-csize=70000]\n";
   print "\t           [-noEM] [-ipfp[=5]] [-samplea[=10]] [-sampleb[=10]]\n";
   print "\t           [-id=ID] [-i] <corpusL1> <corpusL2>\n\n";
-  print "\tnat-create [-q] [-langs=L1..L2] [-tokenize] [-ngrams] [-utf8]\n";
+  print "\tnat-create [-q] [-langs=L1..L2] [-tokenize] [-ngrams]\n";
   print "\t           [-csize=70000]\n";
   print "\t           [-noEM] [-ipfp[=5]] [-samplea[=10]] [-sampleb[=10]]\n";
   print "\t           [-id=ID] [-i] -tmx <tmx>\n\n";
@@ -48,8 +48,6 @@ if ($h || !@ARGV) {
   exit
 }
 
-
-$utf8 ||= 0;
 my @files = @ARGV;
 my @langs = ();
 
@@ -59,9 +57,9 @@ if ($tmx) {
     $tmx = $files[0];
     print STDERR "Loading TMX file.\n";
     if ($langs) {
-        @files = Lingua::NATools::tmx2files({ utf8 => $utf8, verbose => $v}, $tmx, split /\.\./, $langs);
+        @files = Lingua::NATools::tmx2files({ verbose => $v}, $tmx, split /\.\./, $langs);
     } else {
-        @files = Lingua::NATools::tmx2files({ utf8 => $utf8, verbose => $v}, $tmx);		
+        @files = Lingua::NATools::tmx2files({ verbose => $v}, $tmx);		
     }
     die "Error loading TMX file or the specified languages does not exist\n" unless @files &&
       defined($files[0]) && defined($files[1]);
@@ -98,14 +96,11 @@ unless ($q || $id) {
     $defaultname ||= "unamed_corpus";
 }
 
-my $self = NAT->init({ csize => $csize || undef },
-                     $currentdir, $defaultname, @langs);
+my $self = Lingua::NATools->init({ csize => $csize || undef },
+                                 $currentdir, $defaultname, @langs);
 
-$i = 0 if $utf8;
-# utf8 is, basically, ignoring case.
 $self->{tokenize} = 1 if $tokenize;
 $self->codify({verbose     => $v,
-               utf8        => $utf8,
                ignore_case => $i}, $crp1, $crp2);
 
 $self->index_invindexes(1);
@@ -123,7 +118,7 @@ if ($noEM) {
 }
 
 $self->make_dict;
-$self->dump_ptd({utf8 => $utf8});
+$self->dump_ptd();
 
 unlink for @cleanup;
 

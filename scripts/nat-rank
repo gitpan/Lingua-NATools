@@ -8,7 +8,7 @@ our ($h);
 usage() if ($h);
 my $corpus = shift || usage();
 
-my $obj = NAT->load($corpus);
+my $obj = Lingua::NATools->load($corpus);
 
 my $PATH = $obj->{conf}->param("nat.homedir");
 my $nr = $obj->{conf}->param("nat.nr-chunks");

@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "invindex.h"
@@ -31,7 +32,7 @@
 
 
 
-static size_t inv_index_buffer_size(guint32 *buffer)
+static size_t inv_index_buffer_size(nat_uint32_t *buffer)
 {
     size_t s = 0;
     if (!buffer) return 0;
@@ -42,9 +43,9 @@ static size_t inv_index_buffer_size(guint32 *buffer)
 
 static int compare(const void* a, const void* b)
 {
-    guint32 ai,bi;
-    ai = *(guint32*)a;
-    bi = *(guint32*)b;
+    nat_uint32_t ai,bi;
+    ai = *(nat_uint32_t*)a;
+    bi = *(nat_uint32_t*)b;
     return ai>bi?1:(ai<bi?-1:0);
 }
 
@@ -61,7 +62,7 @@ static int compare(const void* a, const void* b)
  * @param character the character to be packed
  * @return an unsigned packed integer
  */
-guint32 pack(guint32 integer, guchar character)
+nat_uint32_t pack(nat_uint32_t integer, nat_uchar_t character)
 {
     if (integer >= TWO_POWER_TWENTYFOUR) return 0;
     return (character << 24) | integer;
@@ -82,7 +83,7 @@ guint32 pack(guint32 integer, guchar character)
  * @return an unsigned integer (<i>a &lt; 2<sup>24</sup></i>) extracted
  *         from the packed integer
  */
-guint32 unpack(guint32 packed, guchar *character)
+nat_uint32_t unpack(nat_uint32_t packed, nat_uchar_t *character)
 {
     *character = packed >> 24;
     return packed & 0x00FFFFFF;
@@ -99,7 +100,7 @@ guint32 unpack(guint32 packed, guchar *character)
  * @param original_size the oringinal number of words
  * @return a new and empty invertion index.
  */
-InvIndex* inv_index_new(guint32 original_size)
+InvIndex* inv_index_new(nat_uint32_t original_size)
 {
     InvIndex *index;
 
@@ -115,7 +116,7 @@ InvIndex* inv_index_new(guint32 original_size)
 
 static InvIndexEntry* inv_index_add_occurrence_(InvIndex *index,
 						InvIndexEntry *entry,
-						guint32 packed) {
+						nat_uint32_t packed) {
     InvIndexEntry *this;
 
     if (entry && entry->data[entry->ptr-1] == packed) return entry;
@@ -129,7 +130,7 @@ static InvIndexEntry* inv_index_add_occurrence_(InvIndex *index,
 	this->next = entry;
 	this->size = CELLSIZE;
 	this->ptr = 0;
-	this->data = g_new(guint32, this->size);
+	this->data = g_new(nat_uint32_t, this->size);
 	this->data[this->ptr++] = packed;
     }
 
@@ -154,12 +155,12 @@ static InvIndexEntry* inv_index_add_occurrence_(InvIndex *index,
  * @return the changed Invertion Index
  */
 InvIndex* inv_index_add_occurrence(InvIndex *index,
-				   guint32 wid,
-				   guchar  chunk,
-				   guint32 sentence) 
+				   nat_uint32_t wid,
+				   nat_uchar_t  chunk,
+				   nat_uint32_t sentence) 
 {
     if (wid >= index->size) {
-	guint32 newsize = index->size;
+	nat_uint32_t newsize = index->size;
 	while(wid > newsize) newsize *=  1.3;
 	index->buffer = g_realloc(index->buffer, 
 				  newsize * sizeof(InvIndexEntry*));
@@ -176,9 +177,9 @@ InvIndex* inv_index_add_occurrence(InvIndex *index,
     return index;
 }
 
-static guint32 inv_index_save_hash_entry(InvIndexEntry *entry, Bucket *bucket) {
+static nat_uint32_t inv_index_save_hash_entry(InvIndexEntry *entry, Bucket *bucket) {
     if (entry) {
-	guint32 i;
+	nat_uint32_t i;
 	for (i = 0; i<entry->ptr; i++) {
 	    bucket = bucket_add(bucket, entry->data[i]);
 	}
@@ -198,23 +199,23 @@ static guint32 inv_index_save_hash_entry(InvIndexEntry *entry, Bucket *bucket) {
  *              progress for the process (which is very slow)
  * @return returns 0 in success, 1 in error
  */
-int inv_index_save_hash(InvIndex *index, const gchar *filename, gboolean quiet)
+int inv_index_save_hash(InvIndex *index, const char *filename, nat_boolean_t quiet)
 {
     FILE *fh;
-    guint32 i;
-    guint32 *offsets;
-    guint32 offset;
+    nat_uint32_t i;
+    nat_uint32_t *offsets;
+    nat_uint32_t offset;
     Bucket *bucket;
 
     fh = fopen(filename, "w");
     if (!fh) return 1;
 
-    offsets = g_new(guint32, index->lastid);
+    offsets = g_new(nat_uint32_t, index->lastid);
 
     if (!quiet) fprintf(stderr, " Saving");
 
-    fwrite(&index->lastid, sizeof(guint32), 1, fh);
-    fwrite(&index->nrentries, sizeof(guint32), 1, fh);
+    fwrite(&index->lastid, sizeof(nat_uint32_t), 1, fh);
+    fwrite(&index->nrentries, sizeof(nat_uint32_t), 1, fh);
 
     bucket = bucket_new(10000000, fh); /* 40 MBytes */
     for (i = 0, offset = 0; i < index->lastid; i++) {
@@ -231,7 +232,7 @@ int inv_index_save_hash(InvIndex *index, const gchar *filename, gboolean quiet)
     }
     bucket_free(bucket);
 
-    fwrite(offsets, sizeof(guint32), index->lastid, fh);
+    fwrite(offsets, sizeof(nat_uint32_t), index->lastid, fh);
     if (!quiet) fprintf(stderr,"\n");
 
     fclose(fh);
@@ -248,19 +249,19 @@ int inv_index_save_hash(InvIndex *index, const gchar *filename, gboolean quiet)
  */
 CompactInvIndex *inv_index_compact_load(const char* filename)
 {
-    guint32 nrwords, nrentries;
+    nat_uint32_t nrwords, nrentries;
     CompactInvIndex *cii;
     FILE *fh;
     fh = fopen(filename, "r");
     if (!fh) return NULL;
 
-    if (!fread(&nrwords,   sizeof(guint32), 1, fh)) return NULL;
-    if (!fread(&nrentries, sizeof(guint32), 1, fh)) return NULL;
+    if (!fread(&nrwords,   sizeof(nat_uint32_t), 1, fh)) return NULL;
+    if (!fread(&nrentries, sizeof(nat_uint32_t), 1, fh)) return NULL;
 
     cii = inv_index_compact_new(nrwords, nrentries);
 
-    if (!fread(cii->entry, sizeof(guint32), nrentries+nrwords, fh)) return NULL;
-    if (!fread(cii->buffer, sizeof(guint32), nrwords, fh)) return NULL;
+    if (!fread(cii->entry,  sizeof(nat_uint32_t), nrentries + nrwords, fh)) return NULL;
+    if (!fread(cii->buffer, sizeof(nat_uint32_t), nrwords, fh)) return NULL;
 
     return cii;
 }
@@ -275,15 +276,15 @@ CompactInvIndex *inv_index_compact_load(const char* filename)
  * @param nrentries number of total occurrences
  * @return the newly created empty Compact Invertion Index object
  */
-CompactInvIndex *inv_index_compact_new(guint32 nrwords,
-				       guint32 nrentries)
+CompactInvIndex *inv_index_compact_new(nat_uint32_t nrwords,
+				       nat_uint32_t nrentries)
 {
     CompactInvIndex *cii;
     cii = g_new(CompactInvIndex, 1);
     cii->nrwords = nrwords;
     cii->nrentries = nrentries;
-    cii->buffer = g_new(guint32, nrwords);
-    cii->entry  = g_new(guint32, nrwords+nrentries);
+    cii->buffer = g_new(nat_uint32_t, nrwords);
+    cii->entry  = g_new(nat_uint32_t, nrwords + nrentries);
     return cii;
 }
 
@@ -315,7 +316,7 @@ static void inv_index_free_entry(InvIndexEntry *entry) {
  */
 void inv_index_free(InvIndex *index)
 {
-    guint32 i;
+    nat_uint32_t i;
     for (i = 0; i < index->size; i++)
 	inv_index_free_entry(index->buffer[i]);
 
@@ -334,13 +335,13 @@ void inv_index_free(InvIndex *index)
  * @return the Invertion Index after the addition of the Compact Inv. Index
  */
 InvIndex* inv_index_add_chunk(InvIndex *index,
-			      guchar chunk,
+			      nat_uchar_t chunk,
 			      CompactInvIndex *cii)
 {
-    guint32 wid;
+    nat_uint32_t wid;
 
     for (wid = 0; wid < cii->nrwords; ++wid) {
-	guint32 ptr = cii->buffer[wid];
+	nat_uint32_t ptr = cii->buffer[wid];
 	while(cii->entry[ptr]) {
 	    index = inv_index_add_occurrence(index, wid, chunk, cii->entry[ptr]);
 	    ptr++;
@@ -357,8 +358,8 @@ InvIndex* inv_index_add_chunk(InvIndex *index,
  * @param wid the word identifier for the occurrences to be retrieved
  * @return a reference to a zero terminated buffer of packed occurrences.
  */
-guint32* inv_index_compact_get_occurrences(CompactInvIndex *index,
-					   guint32 wid)
+nat_uint32_t* inv_index_compact_get_occurrences(CompactInvIndex *index,
+					   nat_uint32_t wid)
 {
     if (wid >= index->nrwords) return NULL;
 
@@ -377,10 +378,10 @@ guint32* inv_index_compact_get_occurrences(CompactInvIndex *index,
  *             to be intersected with <i>self</i>.
  * @return the intersectiong in a new zero-terminated buffer of packed occurrences
  */
-guint32* intersect(guint32 *self, guint32 *other)
+nat_uint32_t* intersect(nat_uint32_t *self, nat_uint32_t *other)
 {
-    guint32 self_read, new_write, other_read;
-    guint32 *new;
+    nat_uint32_t self_read, new_write, other_read;
+    nat_uint32_t *new;
     size_t size_self;
     size_t size_other;
 
@@ -391,7 +392,7 @@ guint32* intersect(guint32 *self, guint32 *other)
 
     if (!size_self) {
 
-	new = g_new(guint32, size_other + 1);
+	new = g_new(nat_uint32_t, size_other + 1);
 	other_read = 0;
 	while(other[other_read]) {
 	    new[other_read] = other[other_read];
@@ -401,7 +402,7 @@ guint32* intersect(guint32 *self, guint32 *other)
 
     } else if (!size_other) {
 
-	new = g_new(guint32, size_self + 1);
+	new = g_new(nat_uint32_t, size_self + 1);
 	self_read = 0;
 	while(self[self_read]) {
 	    new[self_read] = self[self_read];
@@ -411,10 +412,10 @@ guint32* intersect(guint32 *self, guint32 *other)
 
     } else {
 
-	new = g_new(guint32, min(size_self, size_other) + 1);
+	new = g_new(nat_uint32_t, min(size_self, size_other) + 1);
 		
-	qsort(self,  size_self,  sizeof(guint32), &compare);
-	qsort(other, size_other, sizeof(guint32), &compare);
+	qsort(self,  size_self,  sizeof(nat_uint32_t), &compare);
+	qsort(other, size_other, sizeof(nat_uint32_t), &compare);
 
 	self_read = 0;
 	new_write = 0;

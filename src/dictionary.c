@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 #include <math.h>
 #include "dictionary.h"
 
+
 /**
  * @file
  * @brief Code file for temporary dictionary data structure
@@ -36,7 +37,10 @@
 
 static int cmp(const void* pair1, const void* pair2) 
 {
-    return ((DicPair*)pair2)->val > ((DicPair*)pair1)->val;
+    /* Here we can't just subtract the values. They are floats, return
+     * value will be between 0 and 1, that trunated to int will
+     * be... 0! that together with qsort returns a random list.    */
+    return (((DicPair*)pair1)->val > ((DicPair*)pair2)->val) ? -1 : 1;
 }
 
 /**
@@ -52,7 +56,7 @@ int dictionary_save(Dictionary *dic, const char *name)
     FILE *gzf;
 
     gzf = gzopen(name, "wb");
-    if (!gzf) return 0;
+    if (!gzf) report_error("error opening file %s for writing.\n", name);
 
     return dictionary_save_fh(gzf, dic);
 }
@@ -67,11 +71,11 @@ int dictionary_save(Dictionary *dic, const char *name)
  */
 int dictionary_save_fh(FILE* gzf, Dictionary *dic)
 {
-    if (gzwrite(gzf, &dic->size, sizeof(guint32)) != sizeof(guint32)) return 0;
+    if (gzwrite(gzf, &dic->size, sizeof(nat_uint32_t)) != sizeof(nat_uint32_t)) return 0;
     if (gzwrite(gzf, dic->pairs, sizeof(DicPair)*MAXENTRY*(dic->size+1)) != 
 	sizeof(DicPair)*MAXENTRY*(dic->size+1)) return 0;
-    if (gzwrite(gzf, dic->occurs, sizeof(guint32)*(dic->size+1)) != 
-	sizeof(guint32)*(dic->size+1)) return 0;
+    if (gzwrite(gzf, dic->occurs, sizeof(nat_uint32_t)*(dic->size+1)) != 
+	sizeof(nat_uint32_t)*(dic->size+1)) return 0;
     gzclose(gzf);
     return 1;
 }
@@ -87,7 +91,7 @@ Dictionary* dictionary_open(const char *name)
     Dictionary *dic;
     FILE *gzf;
     gzf = gzopen(name, "rb");
-    if (!gzf) return NULL;
+    if (!gzf) report_error("error opening file %s for reading.\n", name);
 
     dic = dictionary_load(gzf);
 
@@ -104,8 +108,8 @@ Dictionary* dictionary_open(const char *name)
 Dictionary *dictionary_load(FILE* gzf) 
 {
     Dictionary *dic;
-    guint32 size;
-    if (gzread(gzf, &size, sizeof(guint32)) != sizeof(guint32)) return NULL;
+    nat_uint32_t size;
+    if (gzread(gzf, &size, sizeof(nat_uint32_t)) != sizeof(nat_uint32_t)) return NULL;
     dic = dictionary_new(size);
     if (!dic) return NULL;
     if (gzread(gzf, dic->pairs, sizeof(DicPair)*MAXENTRY*(dic->size+1))	!=
@@ -113,8 +117,8 @@ Dictionary *dictionary_load(FILE* gzf)
 	dictionary_free(dic);
 	return NULL;
     }
-    if (gzread(gzf, dic->occurs, sizeof(guint32)*(dic->size+1)) !=
-	sizeof(guint32)*(dic->size+1)) {
+    if (gzread(gzf, dic->occurs, sizeof(nat_uint32_t)*(dic->size+1)) !=
+	sizeof(nat_uint32_t)*(dic->size+1)) {
 	dictionary_free(dic);
 	return NULL;
     }
@@ -132,7 +136,7 @@ Dictionary *dictionary_load(FILE* gzf)
  *   this value will be less than MAXENTRY
  * @return the translation word id
  */
-guint32     dictionary_get_id(Dictionary* dic, guint32 wid, guint32 offset)  
+nat_uint32_t dictionary_get_id(Dictionary* dic, nat_uint32_t wid, int offset)  
 {
     if (wid > dic->size || offset >= MAXENTRY) return 0;
     return DIC_POS(dic->pairs, wid, offset).id;
@@ -149,7 +153,7 @@ guint32     dictionary_get_id(Dictionary* dic, guint32 wid, guint32 offset)
  *   this value needs to be less than MAXENTRY
  * @return the translation probability
  */
-float       dictionary_get_val(Dictionary* dic, guint32 wid, guint32 offset) 
+float dictionary_get_val(Dictionary* dic, nat_uint32_t wid, int offset) 
 {
     if (wid > dic->size || offset >= MAXENTRY) return 0;
     return DIC_POS(dic->pairs, wid, offset).val;
@@ -170,7 +174,7 @@ float       dictionary_get_val(Dictionary* dic, guint32 wid, guint32 offset)
  * @param id the translation word id to be set
  * @return the changed Dictionary
  */
-Dictionary *dictionary_set_id(Dictionary* dic, guint32 wid, guint32 offset, guint32 id) 
+Dictionary *dictionary_set_id(Dictionary* dic, nat_uint32_t wid, int offset, nat_uint32_t id) 
 {
     DIC_POS(dic->pairs, wid, offset).id = id;
     return dic;
@@ -190,7 +194,7 @@ Dictionary *dictionary_set_id(Dictionary* dic, guint32 wid, guint32 offset, guin
  * @param val translation to be set
  * @return the changed Dictionary
  */
-Dictionary *dictionary_set_val(Dictionary* dic, guint32 wid, guint32 offset, float val) 
+Dictionary *dictionary_set_val(Dictionary* dic, nat_uint32_t wid, int offset, float val) 
 {
     DIC_POS(dic->pairs, wid, offset).val = val;
     return dic;
@@ -207,7 +211,7 @@ Dictionary *dictionary_set_val(Dictionary* dic, guint32 wid, guint32 offset, flo
  * @param count new word occurrence count
  * @return the changed Dictionary
  */
-Dictionary *dictionary_set_occ(Dictionary* dic, guint32 wid, guint32 count) 
+Dictionary *dictionary_set_occ(Dictionary* dic, nat_uint32_t wid, nat_uint32_t count) 
 {
     dic->occurs[wid] = count;
     return dic;
@@ -223,7 +227,7 @@ Dictionary *dictionary_set_occ(Dictionary* dic, guint32 wid, guint32 count)
  * @param wid word id of word to be searched
  * @return the word occurrence count
  */
-guint32 dictionary_get_occ(Dictionary* dic, guint32 wid) 
+nat_uint32_t dictionary_get_occ(Dictionary* dic, nat_uint32_t wid) 
 {
     if (wid > dic->size) return 0;
     return dic->occurs[wid];
@@ -236,7 +240,7 @@ guint32 dictionary_get_occ(Dictionary* dic, guint32 wid)
  * @param dic the Dictionary to get the size of
  * @return the dictionary size
  */
-guint32 dictionary_get_size(Dictionary* dic) 
+nat_uint32_t dictionary_get_size(Dictionary* dic) 
 {
     return dic->size;
 }
@@ -249,29 +253,29 @@ guint32 dictionary_get_size(Dictionary* dic)
  *
  * @return the newly created dictionary
  */
-Dictionary *dictionary_new(guint32 size) 
+Dictionary *dictionary_new(nat_uint32_t size) 
 {
     Dictionary *new;
 
     new = (Dictionary*)malloc(sizeof(Dictionary));
     if (!new) return new;
 
-    new -> pairs = (DicPair*)malloc(sizeof(DicPair)*MAXENTRY*(size+1));
-    if (!new -> pairs) {
+    new->pairs=(DicPair*)malloc(sizeof(DicPair)*MAXENTRY*(size+1));
+    if (!new->pairs) {
 	free(new);
 	return NULL;
     }
-    memset(new -> pairs, 0, sizeof(DicPair)*MAXENTRY*(size+1));
+    memset(new->pairs, 0, sizeof(DicPair)*MAXENTRY*(size+1));
 
-    new -> occurs = (guint32*)malloc(sizeof(guint32)*MAXENTRY*(size+1));
-    if (!new -> occurs) {
-	free(new -> pairs);
+    new->occurs = (nat_uint32_t*)malloc(sizeof(nat_uint32_t)*MAXENTRY*(size+1));
+    if (!new->occurs) {
+	free(new->pairs);
 	free(new);
 	return NULL;
     }
 
-    memset(new -> occurs, 0, sizeof(guint32)*MAXENTRY*(size+1));
-    new -> size = size;
+    memset(new->occurs, 0, sizeof(nat_uint32_t)*MAXENTRY*(size+1));
+    new->size = size;
 
     return new;
 }
@@ -283,8 +287,8 @@ Dictionary *dictionary_new(guint32 size)
  */
 void dictionary_free(Dictionary *dic) 
 {
-    free(dic -> occurs);
-    free(dic -> pairs);
+    free(dic->occurs);
+    free(dic->pairs);
     free(dic);
 }
 
@@ -300,10 +304,10 @@ Dictionary* dictionary_add(Dictionary *dic1, Dictionary *dic2)
 {
     Dictionary *new;
     int j,k;
-    guint32 size1 = 0, size2 = 0;
-    guint32 i, count, id;
+    nat_uint32_t size1 = 0, size2 = 0;
+    nat_uint32_t i, count, id;
     DicPair buffer1[MAXENTRY * 2], buffer2[MAXENTRY * 2];
-    guint32 new_size = dic1->size > dic2->size ? dic1->size : dic2->size;
+    nat_uint32_t new_size = dic1->size > dic2->size ? dic1->size : dic2->size;
     float factor1, factor2;
 
     for (i = 0; i < new_size; i++) {
@@ -344,7 +348,7 @@ Dictionary* dictionary_add(Dictionary *dic1, Dictionary *dic2)
 	    }
 	}
 
-	/* OK. Neste ponto devemos ter os dois buffers prontos pare
+	/* OK. Neste ponto devemos ter os dois buffers prontos para
 	 * serem somados */
 	for (j = 0; j< MAXENTRY*2; j++) {
 	    float tmp;
@@ -385,7 +389,7 @@ Dictionary* dictionary_add(Dictionary *dic1, Dictionary *dic2)
 	    dictionary_set_val(new, i, j, buffer1[j].val);
 	}
 	
-	count = (guint32)dictionary_get_occ(dic1, i) + (guint32)dictionary_get_occ(dic2, i);
+	count = dictionary_get_occ(dic1, i) + dictionary_get_occ(dic2, i);
 	new = dictionary_set_occ(new, i, count);
     }
 
@@ -407,8 +411,8 @@ Dictionary* dictionary_add(Dictionary *dic1, Dictionary *dic2)
  * @return a translation probability measure
  */
 double dictionary_sentence_similarity(Dictionary *dic,
-				      guint32 *s1, int s1size,
-				      guint32 *s2, int s2size) 
+				      nat_uint32_t *s1, int s1size,
+				      nat_uint32_t *s2, int s2size) 
 {
     double val = 0.0;
     int i, j, k, done;
@@ -417,7 +421,7 @@ double dictionary_sentence_similarity(Dictionary *dic,
 	done = 0;
 	if (s1[i] < dic->size) {
 	    for (j = 0; j < MAXENTRY && !done; j++) {
-		guint32 id = dictionary_get_id(dic, s1[i], j);
+		nat_uint32_t id = dictionary_get_id(dic, s1[i], j);
 		for (k = 0; k < s2size && !done; k++) {
 		    if (s2[k] == id) {
 			float v = dictionary_get_val(dic, s1[i], j);
@@ -434,13 +438,13 @@ double dictionary_sentence_similarity(Dictionary *dic,
 }
 
 
-static void dictionary_remap_with_size(guint32 *Sit, guint32 *Tit, Dictionary *dic, guint32 size) 
+static void dictionary_remap_with_size(nat_uint32_t *Sit, nat_uint32_t *Tit, Dictionary *dic, nat_uint32_t size) 
 {
-    guint32 *occopy;
+    nat_uint32_t *occopy;
     DicPair *copy;
-    guint32 i, j;
+    nat_uint32_t i, j;
 
-    occopy = g_new(guint32, dic->size + 1);
+    occopy = g_new(nat_uint32_t, dic->size + 1);
     copy   = g_new(DicPair, dic->size * MAXENTRY + MAXENTRY);
     for (i=0; i < size; ++i) {
 	occopy[Sit[i]] = dic->occurs[i];
@@ -465,7 +469,7 @@ static void dictionary_remap_with_size(guint32 *Sit, guint32 *Tit, Dictionary *d
  *
  * @todo Fix these docs
  */
-void dictionary_remap(guint32 *Sit, guint32 *Tit, Dictionary *dic) 
+void dictionary_remap(nat_uint32_t *Sit, nat_uint32_t *Tit, Dictionary *dic) 
 {
     dictionary_remap_with_size(Sit,Tit,dic,dic->size);
 }
@@ -475,10 +479,10 @@ void dictionary_remap(guint32 *Sit, guint32 *Tit, Dictionary *dic)
  *
  * @todo Fix these docs
  */
-void dictionary_realloc_map(guint32 *Sit, guint32 *Tit, Dictionary *dic, guint32 nsize)
+void dictionary_realloc_map(nat_uint32_t *Sit, nat_uint32_t *Tit, Dictionary *dic, nat_uint32_t nsize)
 {
-    guint32 i;
-    guint32 osize;
+    nat_uint32_t i;
+    nat_uint32_t osize;
     osize = dic->size;
     dictionary_realloc(dic, nsize);
 
@@ -500,10 +504,10 @@ void dictionary_realloc_map(guint32 *Sit, guint32 *Tit, Dictionary *dic, guint32
  * @param dic The dictionary to be enlarged
  * @param nsize The new dictionary size
  */
-void dictionary_realloc(Dictionary *dic, guint32 nsize) {
+void dictionary_realloc(Dictionary *dic, nat_uint32_t nsize) {
     g_message("** old size is %u", dic->size);
     g_message("** new size is %u", nsize);
-    dic->occurs = g_realloc(dic->occurs, nsize*sizeof(guint32));
+    dic->occurs = g_realloc(dic->occurs, nsize*sizeof(nat_uint32_t));
     dic->pairs  = g_realloc(dic->pairs,  nsize*sizeof(DicPair)*MAXENTRY);
     dic->size   = nsize;
 }

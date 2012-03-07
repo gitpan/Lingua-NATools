@@ -1,5 +1,5 @@
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,14 +18,16 @@
  */
 
 
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <zlib.h>
 #include <string.h>
 
-#include "words.h"
+#include <NATools/words.h>
 #include "dictionary.h"
+#include "unicode.h"
 #include "natdict.h"
 
 /**
@@ -34,8 +36,9 @@
  * NATools dictionary
  */
 
-static guint32 put_string(gchar *str, gchar *orig, guint32 ptr, guint32 size) {
-    guint i = 0;
+static nat_uint32_t put_string(wchar_t *str, wchar_t *orig,
+                               nat_uint32_t ptr, nat_uint32_t size) {
+    nat_uint32_t i = 0;
     while(orig[i]) {
 	str[ptr++] = orig[i++];
 	if (ptr == size) {
@@ -47,9 +50,10 @@ static guint32 put_string(gchar *str, gchar *orig, guint32 ptr, guint32 size) {
     return ptr;
 }
 
-static guint32 tree_to_array(guint32 nrwords, gchar *str, NATCell *cells, WordLstNode *tree, guint32 ptr,
-		      guint32 size, guint32 *cellptr, guint32 *tab) {
-    guint32 offset = ptr;
+static nat_uint32_t tree_to_array(nat_uint32_t nrwords, wchar_t *str, 
+                                  NATCell *cells, WordLstNode *tree, nat_uint32_t ptr,
+                                  nat_uint32_t size, nat_uint32_t *cellptr, nat_uint32_t *tab) {
+    nat_uint32_t offset = ptr;
     if (tree->left)
 	offset = tree_to_array(nrwords, str, cells, tree->left, offset, size, cellptr, tab);
 
@@ -74,12 +78,12 @@ static guint32 tree_to_array(guint32 nrwords, gchar *str, NATCell *cells, WordLs
 
 static int save(char *outfile,
 		char *lang1, char *lang2,
-		char *dicfile1, guint32 *tab1,
-		char *dicfile2, guint32 *tab2,
-		char *string1, guint32 ptr1, NATCell *cells1, guint32 size1,
-		char *string2, guint32 ptr2, NATCell *cells2, guint32 size2) {
+		char *dicfile1, nat_uint32_t *tab1,
+		char *dicfile2, nat_uint32_t *tab2,
+		wchar_t *string1, nat_uint32_t ptr1, NATCell *cells1, nat_uint32_t size1,
+		wchar_t *string2, nat_uint32_t ptr2, NATCell *cells2, nat_uint32_t size2) {
     FILE *out = NULL;
-    gint32 s;
+    nat_int_t s;
 
     Dictionary *dic;
 
@@ -90,26 +94,26 @@ static int save(char *outfile,
     gzprintf(out,"!NATDict");
 
     s = strlen(lang1)+1;
-    gzwrite(out, &s, sizeof(gint32));
+    gzwrite(out, &s, sizeof(nat_int_t));
     gzwrite(out, lang1, s);
 
     s = strlen(lang2)+1;
-    gzwrite(out, &s, sizeof(gint32));
+    gzwrite(out, &s, sizeof(nat_int_t));
     gzwrite(out, lang2, s);
 
     // Save first lexicon
     g_message("** Saving source Lexicon **");
-    gzwrite(out, &ptr1, sizeof(guint32));
+    gzwrite(out, &ptr1, sizeof(nat_uint32_t));
     gzwrite(out, string1, ptr1);
-    gzwrite(out, &size1, sizeof(guint32));
+    gzwrite(out, &size1, sizeof(nat_uint32_t));
     g_message("\tSize: %u", size1);
     gzwrite(out, cells1, sizeof(NATCell) * size1);
 
     // Save second lexicon
     g_message("** Saving target Lexicon **");
-    gzwrite(out, &ptr2, sizeof(guint32));
+    gzwrite(out, &ptr2, sizeof(nat_uint32_t));
     gzwrite(out, string2, ptr2);
-    gzwrite(out, &size2, sizeof(guint32));
+    gzwrite(out, &size2, sizeof(nat_uint32_t));
     g_message("\tSize: %u", size2);
     gzwrite(out, cells2, sizeof(NATCell)* size2);
 
@@ -121,9 +125,9 @@ static int save(char *outfile,
     dictionary_remap(tab1, tab2, dic);
 
     g_message("\tSaving...");
-    gzwrite(out, &dic->size, sizeof(guint32));
+    gzwrite(out, &dic->size, sizeof(nat_uint32_t));
     gzwrite(out, dic->pairs, sizeof(DicPair)*MAXENTRY*(dic->size+1));
-    gzwrite(out, dic->occurs, sizeof(guint32)*(dic->size+1));
+    gzwrite(out, dic->occurs, sizeof(nat_uint32_t)*(dic->size+1));
     dictionary_free(dic);
 
     // Load second dictionary
@@ -134,9 +138,9 @@ static int save(char *outfile,
     dictionary_remap(tab2, tab1, dic);
 
     g_message("\tSaving...");
-    gzwrite(out, &dic->size, sizeof(guint32));
+    gzwrite(out, &dic->size, sizeof(nat_uint32_t));
     gzwrite(out, dic->pairs, sizeof(DicPair)*MAXENTRY*(dic->size+1));
-    gzwrite(out, dic->occurs, sizeof(guint32)*(dic->size+1));
+    gzwrite(out, dic->occurs, sizeof(nat_uint32_t)*(dic->size+1));
     dictionary_free(dic);
 
     // Close the file
@@ -147,36 +151,36 @@ static int save(char *outfile,
 }
 
 static void go(char *lang1, char *lang2,
-	char *lexfile1, char *dicfile1,
-	char *lexfile2, char *dicfile2,
-	char *outfile) {
-    WordList *lex1, *lex2;
-    gchar *string1 = NULL;
-    gchar *string2 = NULL;
-    guint32 ptr1 = 0;
-    guint32 ptr2 = 0;
-    guint32 size1, size2;
+               char *lexfile1, char *dicfile1,
+               char *lexfile2, char *dicfile2,
+               char *outfile) {
+    Words *lex1, *lex2;
+    wchar_t *string1 = NULL;
+    wchar_t *string2 = NULL;
+    nat_uint32_t ptr1 = 0;
+    nat_uint32_t ptr2 = 0;
+    nat_uint32_t size1, size2;
     NATCell *cells1 = NULL;
     NATCell *cells2 = NULL;
-    guint32 cellptr1 = 0;
-    guint32 cellptr2 = 0;
-    guint32 *tab1 = NULL;
-    guint32 *tab2 = NULL;
+    nat_uint32_t cellptr1 = 0;
+    nat_uint32_t cellptr2 = 0;
+    nat_uint32_t *tab1 = NULL;
+    nat_uint32_t *tab2 = NULL;
 
     /* ---- First ------------------------------- */
-    lex1 = word_list_load(lexfile1, NULL);
-    if (!lex1) { g_warning("Error loading lexicon 1"); exit(1); }
+    lex1 = words_quick_load(lexfile1);
+    if (!lex1) { fprintf(stderr, "Error loading lexicon 1\n"); exit(1); }
 
     size1 = 11 * lex1->count;
 
-    string1 = g_new0(gchar, size1);
-    if (!string1) { g_warning("Error allocating string1"); exit(1); }
+    string1 = g_new0(wchar_t, size1);
+    if (!string1) { fprintf(stderr, "Error allocating string1\n"); exit(1); }
 
     cells1 = g_new0(NATCell, lex1->count + 1);
-    if (!cells1) { g_warning("Error allocating cells1"); exit(1); }
+    if (!cells1) { fprintf(stderr, "Error allocating cells1\n"); exit(1); }
 
-    tab1 = g_new0(guint32, lex1->count + 1);
-    if (!tab1) { g_warning("Error allocating tab1"); exit(1); }
+    tab1 = g_new0(nat_uint32_t, lex1->count + 1);
+    if (!tab1) { fprintf(stderr, "Error allocating tab1\n"); exit(1); }
 
     tab1[0] = tab1[1] = lex1->count-1;
     ptr1 = tree_to_array(lex1->count,string1, cells1, lex1->tree, ptr1, size1, &cellptr1, tab1);
@@ -192,19 +196,19 @@ static void go(char *lang1, char *lang2,
     g_message("\tNULL is pointing to %u", tab1[0]);
 
     /* ---- Second ------------------------------ */
-    lex2 = word_list_load(lexfile2, NULL);
-    if (!lex2) { g_warning("Error loading lexicon 2"); exit(1); }
+    lex2 = words_quick_load(lexfile2);
+    if (!lex2) report_error("Error loading lexicon 2\n");
 
     size2 = 11*lex2->count;
 
-    string2 = g_new0(gchar, size2);
-    if (!string2) { g_warning("Error allocating string2"); exit(1); }
+    string2 = g_new0(wchar_t, size2);
+    if (!string2) report_error("Error allocating string2\n");
 
     cells2 = g_new0(NATCell, lex2->count+1);
-    if (!cells2) { g_warning("Error allocating cells2"); exit(1); }
+    if (!cells2) report_error("Error allocating cells2\n");
 
-    tab2 = g_new0(guint32, lex2->count+1);
-    if (!tab2) { g_warning("Error allocating tab2"); exit(1); }
+    tab2 = g_new0(nat_uint32_t, lex2->count+1);
+    if (!tab2) report_error("Error allocating tab2\n");
 
     tab2[0] = tab2[1] = lex2->count-1;
     ptr2 = tree_to_array(lex2->count,string2, cells2, lex2->tree, ptr2, size2, &cellptr2, tab2);
@@ -231,8 +235,8 @@ static void go(char *lang1, char *lang2,
 	 string2, ptr2, cells2, lex2->count);   */
 
 
-    word_list_free(lex1);
-    word_list_free(lex2);
+    words_free(lex1);
+    words_free(lex2);
 }
 
 /**
@@ -241,6 +245,8 @@ static void go(char *lang1, char *lang2,
  * @todo Document all this program
  */
 int main(int argc, char *argv[]) {
+
+    init_locale();
     
     if (argc != 8) {
 	printf("mkdict <lang1> <lang2> <lex1> <dic1> <lex2> <dic2> <outfile>\n");

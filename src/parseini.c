@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,23 +21,26 @@
  */
 
 #include <glib.h>
+#include <stdio.h>
+#include "standard.h"
 
 GHashTable* parse_ini(const char* filename)
 {
     GKeyFile *file;
     GHashTable *hash;
-    gchar **keys, **iterator;
+    char **keys, **iterator;
 
     file = g_key_file_new();
 
     if (g_key_file_load_from_file(file, filename, G_KEY_FILE_NONE, NULL)) {
 	
 	hash = g_hash_table_new(g_str_hash, g_str_equal);
+
 	keys = g_key_file_get_keys(file, "nat", NULL, NULL);
 	iterator = keys;
 
 	while(*iterator) {
-	    gchar *value;
+	    char *value;
 	    value = g_key_file_get_value(file, "nat", *iterator, NULL);
 	    g_hash_table_insert(hash, g_strdup(*iterator), value);
 	    iterator++;
@@ -46,7 +49,6 @@ GHashTable* parse_ini(const char* filename)
 	g_strfreev(keys);
 
 	return hash;
-
     } else {
 	return NULL;
     }

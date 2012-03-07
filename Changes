@@ -1,3 +1,14 @@
+
+0.7.0_01  Wed Mar  7 15:12:23 WET 2012
+ - Changed words module interface.
+   (less pointers of pointers of pointers)
+ - Only UTF-8 support is available now.
+ - ISO-8859-1 support droped.
+ - Progressive removal of glib dependency.
+   (U32/U8/gboolean)
+ - Fix some scripts that were failing with perl'ization.
+ - Fixed bug when summing up PTDs.
+
 0.6.4     Sat Feb 25 16:30:40 WET 2012
  - Parse::Yapp driving me crazy.
 

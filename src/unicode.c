@@ -1,6 +1,6 @@
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,20 +21,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "isolatin.h"
+#include <wchar.h>
+
+#include <NATools.h>
+
+#include "unicode.h"
 
 /**
  * @file
- * @brief Code file to parse corpora using iso-8859-1*
+ * @brief Code file to parse corpora using UTF-8
  *
  * @todo Fix Documentation
  */
 
+#include <locale.h>
+#include <langinfo.h>
 
-static int InWord(char ch)
+void init_locale(void) {
+    setlocale(LC_CTYPE, "");
+    if (strcmp(nl_langinfo(CODESET), "UTF-8")) {
+        /* failed, try en_US.UTF-8 */
+        setlocale(LC_CTYPE, "en_US.UTF-8");
+        if (strcmp(nl_langinfo(CODESET), "UTF-8")) {
+            fprintf(stderr, "Could not find an UTF-8 locale \n"
+                    "(check LC_CTYPE env var, or the availability of en_US.UTF-8 locale)\n");
+            exit(1);
+        }
+    }
+}
+
+static nat_boolean_t InWord(wchar_t ch)
 {
     /* tokenising now by perl script */
-    return (ch != ' ' && ch != '\n' && ch != '\t'); 
+    return (ch != L' ' && ch != L'\n' && ch != L'\t'); 
 }
 
 /**
@@ -45,13 +64,13 @@ static int InWord(char ch)
  *
  * @return pointer to the beginning of the word on the text.
  */
-static char *FirstTextWord(char *text, int (*funct)(char))
+static wchar_t *FirstTextWord(wchar_t *text, nat_boolean_t (*funct)(wchar_t))
 
 {
-    while (*text != '\0' && !(*funct)(*text))
-	text++;
-    if (*text == '\0') return NULL;
-    else return text;
+    while (*text != L'\0' && !(*funct)(*text)) 	text++;
+
+    if (*text == L'\0') return NULL;
+    else                return text;
 }
 
 /**
@@ -62,24 +81,25 @@ static char *FirstTextWord(char *text, int (*funct)(char))
  *
  * @return pointer to the beginning of the word on the text
  */
-static char *NextTextWord(char *text, int (*funct)(char))
+static wchar_t *NextTextWord(wchar_t *text, nat_boolean_t (*funct)(wchar_t))
 {
-    char* bow;
+    wchar_t* bow;
     bow = text;
     /* we are in the beginning of a word. Find its end! */
-    while (*text != '\0' && (*funct)(*text))
-	text++;
+    while (*text != L'\0' && (*funct)(*text)) text++;
+
     /* if we end the buffer, return NULL */
-    if (*text == '\0') return NULL;
+    if (*text == L'\0') return NULL;
+
     /* Mark end of the current word */
-    *text++ = '\0';
+    *text++ = L'\0';
 
     /* Search for the beginning of the next word */
-    while (*text != '\0' && !(*funct)(*text))
-	text++;
+    while (*text != L'\0' && !(*funct)(*text)) text++;
+
     /* if we end the buffer, return NULL */
-    if (*text == '\0') return NULL;
-    else return text;
+    if (*text == L'\0') return NULL;
+    else                return text;
 }
 
 /**
@@ -92,10 +112,11 @@ static char *NextTextWord(char *text, int (*funct)(char))
  * @param hd HardDelimiter
  * @param funct function saying if a char is in a word, or not.
  */
-static unsigned short NextTextString(char **sen, char **text, unsigned short maxLen,
-				     char sd, char hd, int (*funct)(char))
+static unsigned short NextTextString(wchar_t **sen, wchar_t **text,
+                                     unsigned short maxLen,
+				     wchar_t sd, wchar_t hd, nat_boolean_t (*funct)(wchar_t))
 {
-    char *word;
+    wchar_t *word;
     unsigned short len = 0;
 
     if (*text != NULL) {
@@ -127,7 +148,8 @@ static unsigned short NextTextString(char **sen, char **text, unsigned short max
  * @param sd SoftDelimiter
  * @param hd HardDelimiter
  */
-unsigned short NextTextSentence(char **sen, char **text, unsigned short maxLen, char sd, char hd)
+unsigned short NextTextSentence(wchar_t **sen, wchar_t **text,
+                                unsigned short maxLen, wchar_t sd, wchar_t hd)
 {
     return NextTextString(sen, text, maxLen, sd, hd, InWord);
 }
@@ -138,22 +160,69 @@ unsigned short NextTextSentence(char **sen, char **text, unsigned short maxLen, 
  * @param filename Filename of the text file to be read
  * @return A big null-terminated buffer with the text file
  */
-char *ReadText(const char *filename)
+wchar_t *ReadText(const char *filename)
 {
     FILE *fd;
     long len;
     struct stat stat_buf;
-    char *result;
+    wchar_t *result;
+    wchar_t *pos;
     
-    fd = fopen(filename, "rt");
-    if(fd == NULL) return NULL;
-    if(fstat(fileno(fd), &stat_buf) == -1) return NULL;
+    fd = fopen(filename, "r");
+    if (fd == NULL) return NULL;
+    if (fstat(fileno(fd), &stat_buf) == -1) return NULL;
+
     len = stat_buf.st_size;
-    result = (char *) malloc(len+1);
-    if(result == NULL) return NULL;
-    if (fread(result, sizeof(char), len, fd) != len)
-	return NULL;
+    result = (wchar_t*)malloc(sizeof(wchar_t) * (len+1));
+    pos = result;
+    if (result == NULL) return NULL;
+
+    while (!feof(fd)) {
+        wchar_t c = fgetwc(fd);
+        if (!feof(fd)) *pos = c;
+        pos++;
+    }
+
     if (fclose(fd)) return NULL;
-    result[len] = '\0';
-    return(result);
+    *pos = '\0';
+
+    return result;
+}
+
+/* Nat_string */
+
+nat_string_t *nat_string_new() {
+    nat_string_t *string;
+
+    string = g_new(nat_string_t, 1);
+    string->str = g_new(wchar_t, NAT_STRING_START_SIZE);
+    string->buffer_size = NAT_STRING_START_SIZE;
+    string->length = 0;
+
+    return string;
+}
+
+void nat_string_free(nat_string_t *str) {
+    if (str) {
+        if (str->str) g_free(str->str);
+        g_free(str);
+    }
+}
+
+nat_string_t*  nat_string_append(nat_string_t *str, const wchar_t *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int r;
+    do {
+        r = vswprintf(str->str + str->length, str->buffer_size - str->length - 1,
+                      format, args);
+        if (r <= 0) {
+            str->buffer_size += NAT_STRING_INCREMENT;
+            str->str = (wchar_t*) g_realloc(str->str, sizeof(wchar_t) * str->buffer_size);
+            if (!str->str) report_error("No mem?!?!?");
+        }
+    } while (r<=0);
+    str->length += r;
+    str->str[str->length] = L'\0';
+    return str;
 }

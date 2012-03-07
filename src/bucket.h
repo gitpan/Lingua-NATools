@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,15 +41,15 @@ typedef struct cBucket {
     /** filehandler of the buffered output file  */
     FILE *fh;
     /** size of the bucket */
-    guint32 size;
+    nat_uint32_t size;
     /** bucket or buffer for the integers */
-    guint32 *buffer;
+    nat_uint32_t *buffer;
     /** pointer the the first free position on the buffer */
-    guint32 ptr;
+    nat_uint32_t ptr;
 } Bucket;
 
-Bucket *bucket_new (guint32 size, FILE* file);
-Bucket *bucket_add (Bucket *self, guint32 val);
+Bucket *bucket_new (nat_uint32_t size, FILE* file);
+Bucket *bucket_add (Bucket *self, nat_uint32_t val);
 void    bucket_free(Bucket *self);
 
 #endif

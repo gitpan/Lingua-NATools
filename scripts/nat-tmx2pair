@@ -27,7 +27,7 @@ while ($filename = shift) {
                        $seg{$v{lang}}++;
                        unless (exists($file{"$filename-$v{lang}"})) {
                            my $x;
-                           open $x, ">$filename-$v{lang}" or die "Cannot open $filename-$v{lang}";
+                           open $x, ">:utf8", "$filename-$v{lang}" or die "Cannot open $filename-$v{lang}";
                            $file{"$filename-$v{lang}"} = $x;
                        }
                        $fd = $file{"$filename-$v{lang}"};

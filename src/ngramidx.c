@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -235,25 +235,25 @@ void ngram_index_close(SQLite *sqstruct) {
 } 
 
 static int set_exists(void *exists, int argc, char **argv, char **azColName) {
-    *((guint32*)exists) = (guint32)g_ascii_strtoull(argv[0], NULL, 10);
+    *((nat_uint32_t*)exists) = (nat_uint32_t)g_ascii_strtoull(argv[0], NULL, 10);
     return 0;
 }
 
-void bigram_add_occurrence(SQLite* sqstruct, guint32 w1, guint32 w2) {
+void bigram_add_occurrence(SQLite* sqstruct, nat_uint32_t w1, nat_uint32_t w2) {
     sqlite3 *db = sqstruct->dbh;
-    guint32 * counter;
+    nat_uint32_t * counter;
     char *token = NULL;
 
     if (sqstruct->n != -1 && sqstruct->n != 2) return;
 
     /* Use our beloved cache */
     token = g_strdup_printf("%u|%u", w1, w2);
-    counter = (guint32 *) g_hash_table_lookup(sqstruct->bigram_cache, token);
+    counter = (nat_uint32_t *) g_hash_table_lookup(sqstruct->bigram_cache, token);
 
     if(counter) 
         (*counter)++;
     else {
-        counter = (guint32*) g_malloc(sizeof(guint32));
+        counter = (nat_uint32_t*) g_malloc(sizeof(nat_uint32_t));
         *counter = 1;
     }
     g_hash_table_insert(sqstruct->bigram_cache, token, counter); 
@@ -264,21 +264,21 @@ void bigram_add_occurrence(SQLite* sqstruct, guint32 w1, guint32 w2) {
     /* END cache */
 }
 
-void trigram_add_occurrence(SQLite* sqstruct, guint32 w1, guint32 w2, guint32 w3) {
+void trigram_add_occurrence(SQLite* sqstruct, nat_uint32_t w1, nat_uint32_t w2, nat_uint32_t w3) {
     sqlite3 *db = sqstruct->dbh;
-    guint32 * counter;
+    nat_uint32_t * counter;
     char *token = NULL;
 
     if (sqstruct->n != -1 && sqstruct->n != 3) return;
 
     /* Use our beloved cache */
     token = g_strdup_printf("%u|%u|%u", w1, w2, w3);
-    counter = (guint32 *) g_hash_table_lookup(sqstruct->trigram_cache, token);
+    counter = (nat_uint32_t *) g_hash_table_lookup(sqstruct->trigram_cache, token);
 
     if(counter) 
         (*counter)++;
     else {
-        counter = (guint32*) g_malloc(sizeof(guint32));
+        counter = (nat_uint32_t*) g_malloc(sizeof(nat_uint32_t));
         *counter = 1;
     }
     g_hash_table_insert(sqstruct->trigram_cache, token, counter); 
@@ -289,21 +289,21 @@ void trigram_add_occurrence(SQLite* sqstruct, guint32 w1, guint32 w2, guint32 w3
     /* END cache */
 }
 
-void tetragram_add_occurrence(SQLite* sqstruct, guint32 w1, guint32 w2, guint32 w3, guint32 w4) {
+void tetragram_add_occurrence(SQLite* sqstruct, nat_uint32_t w1, nat_uint32_t w2, nat_uint32_t w3, nat_uint32_t w4) {
     sqlite3 *db = sqstruct->dbh;
-    guint32 * counter;
+    nat_uint32_t * counter;
     char *token = NULL;
 
     if (sqstruct->n != -1 && sqstruct->n != 4) return;
 
     /* Use our beloved cache */
     token = g_strdup_printf("%u|%u|%u|%u", w1, w2, w3, w4);
-    counter = (guint32 *) g_hash_table_lookup(sqstruct->tetragram_cache, token);
+    counter = (nat_uint32_t *) g_hash_table_lookup(sqstruct->tetragram_cache, token);
 
     if(counter) 
         (*counter)++;
     else {
-        counter = (guint32*) g_malloc(sizeof(guint32));
+        counter = (nat_uint32_t*) g_malloc(sizeof(nat_uint32_t));
         *counter = 1;
     }
     g_hash_table_insert(sqstruct->tetragram_cache, token, counter); 
@@ -318,10 +318,10 @@ gboolean bigram_free_cache(gpointer key, gpointer value, gpointer user_data) {
     int rc;
     char * query = NULL;
     char * skey   = (char *)    key;
-    guint32 * nvalue = (guint32 *) value;
+    nat_uint32_t * nvalue = (nat_uint32_t *) value;
     char *errmsg  = NULL;
-    guint32 exists = 0;
-    guint32 w1, w2;
+    nat_uint32_t exists = 0;
+    nat_uint32_t w1, w2;
     sqlite3 *db = (sqlite3 *) user_data;
 
     sscanf(skey, "%u|%u", &w1, &w2);
@@ -368,10 +368,10 @@ gboolean trigram_free_cache(gpointer key, gpointer value, gpointer user_data) {
     int rc;
     char * query = NULL;
     char * skey   = (char *)    key;
-    guint32 * nvalue = (guint32 *) value;
+    nat_uint32_t * nvalue = (nat_uint32_t *) value;
     char *errmsg  = NULL;
-    guint32 exists = 0;
-    guint32 w1, w2, w3;
+    nat_uint32_t exists = 0;
+    nat_uint32_t w1, w2, w3;
     sqlite3 *db = (sqlite3 *) user_data;
 
     sscanf(skey, "%u|%u|%u", &w1, &w2, &w3);
@@ -419,10 +419,10 @@ gboolean tetragram_free_cache(gpointer key, gpointer value, gpointer user_data) 
     int rc;
     char * query = NULL;
     char * skey   = (char *)    key;
-    guint32 * nvalue = (guint32 *) value;
+    nat_uint32_t * nvalue = (nat_uint32_t *) value;
     char *errmsg  = NULL;
-    guint32 exists = 0;
-    guint32 w1, w2, w3, w4;
+    nat_uint32_t exists = 0;
+    nat_uint32_t w1, w2, w3, w4;
     sqlite3 *db = (sqlite3 *) user_data;
 
     sscanf(skey, "%u|%u|%u|%u", &w1, &w2, &w3, &w4);

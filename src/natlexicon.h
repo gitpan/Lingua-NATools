@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,10 @@
 #ifndef __NATLEXICON_H__
 #define __NATLEXICON_H__
 
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 
 #include "dictionary.h"
-
 
 /**
  * @file
@@ -38,11 +38,11 @@
  */
 typedef struct _NATCell {
     /** the offset of the word in the words string*/
-    guint32 offset;
+    nat_uint32_t offset;
     /** occurrence count of the word in the corpus */
-    guint32 count;
+    nat_uint32_t count;
     /** word identifier (equal to the cell index in the main array) */
-    guint32 id;
+    nat_uint32_t id;
 } NATCell;
 
 /**
@@ -50,34 +50,23 @@ typedef struct _NATCell {
  */
 typedef struct _NATLexicon {
     /** offset of the end of the string in the words string array */
-    guint32   words_limit;
+    nat_uint32_t words_limit;
     /** word string array, a collection of words separated by the NULL character */
-    gchar    *words;
+    wchar_t *words;
 
     /** array of word cells */
-    NATCell  *cells;
+    NATCell *cells;
     /** index for the next free cell on the array (number of elements in the array)*/
-    guint32   count;
+    nat_uint32_t count;
 } NATLexicon;
 
-guint32            natlexicon_id_from_word            (NATLexicon      *lexicon,
-						       const gchar     *word);
+nat_uint32_t natlexicon_id_from_word(NATLexicon *lexicon, const wchar_t *word);
+wchar_t*     natlexicon_word_from_id(NATLexicon *lexicon, nat_uint32_t id);
+nat_uint32_t natlexicon_count_from_id(NATLexicon *lexicon, nat_uint32_t id);
 
-gchar*             natlexicon_word_from_id            (NATLexicon      *lexicon, 
-						       guint32          id);
-
-guint32            natlexicon_count_from_id           (NATLexicon      *lexicon, 
-						       guint32          id);
-
-
-NATLexicon*        natlexicon_conciliate              (NATLexicon      *lex1,
-						       guint32        **it1,
-						       NATLexicon      *lex2, 
-						       guint32        **it2);
-
-NATCell*           natlexicon_search_word             (NATLexicon      *lex,
-						       const gchar     *word);
-
-void               natlexicon_free                    (NATLexicon      *self);
+NATLexicon*  natlexicon_conciliate(NATLexicon *lex1, nat_uint32_t **it1,
+                                   NATLexicon *lex2, nat_uint32_t **it2);
+NATCell*     natlexicon_search_word(NATLexicon *lex, const wchar_t *word);
+void         natlexicon_free(NATLexicon *self);
 
 #endif

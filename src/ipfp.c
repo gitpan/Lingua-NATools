@@ -26,7 +26,7 @@
 #include <math.h>
 
 #include "standard.h"
-#include "corpus.h"
+#include <NATools/corpus.h>
 #include "matrix.h"
 
 /**
@@ -82,11 +82,11 @@ void show_help () {
 
 /* EM algorithm */
 
-static guint32 MarginalCounts(CorpusCell *s, guint32 *st,
-			      guint32 *n, guint32 l,
-			      guint32 nullwrd)
+static nat_uint32_t MarginalCounts(CorpusCell *s, nat_uint32_t *st,
+			      nat_uint32_t *n, nat_uint32_t l,
+			      nat_uint32_t nullwrd)
 {
-    guint32 i, j, lt;
+    nat_uint32_t i, j, lt;
     i = 0;
     lt = 0;
     while (s[i].word) {
@@ -100,8 +100,8 @@ static guint32 MarginalCounts(CorpusCell *s, guint32 *st,
 	    if (st[j] == s[i].word)
 		n[j] += 1;
 	    else {
-		memmove(st+j+1, st+j, sizeof(guint32) * (lt-j));
-		memmove(n+j+1, n+j, sizeof(guint32) * (lt-j));
+		memmove(st + j + 1, st + j, sizeof(nat_uint32_t) * (lt - j));
+		memmove( n + j + 1,  n + j, sizeof(nat_uint32_t) * (lt - j));
 		n[j] = 1;
 		st[j] = s[i].word;
 		lt++;
@@ -110,10 +110,10 @@ static guint32 MarginalCounts(CorpusCell *s, guint32 *st,
 	i++;
     }
     if (i < l) {
-	memmove(st+1, st, sizeof(guint32) * lt);
-	memmove(n+1, n, sizeof(guint32) * lt);
+	memmove(st + 1, st, sizeof(nat_uint32_t) * lt);
+	memmove( n + 1, n,  sizeof(nat_uint32_t) * lt);
 	st[0] = nullwrd;
-	n[0] = l-i;
+	n[0] = l - i;
 	lt++;
     }
     st[lt] = 0;
@@ -121,10 +121,10 @@ static guint32 MarginalCounts(CorpusCell *s, guint32 *st,
     return lt;
 }
 
-static double MarginalProbs(double *p, double *pi, double *pj, guint32 lr, guint32 lc)
+static double MarginalProbs(double *p, double *pi, double *pj, nat_uint32_t lr, nat_uint32_t lc)
 {
     double total, f;
-    guint32 r, c;
+    nat_uint32_t r, c;
     total = 0.0f;
     for (c = 0; c < lc; c++) pj[c] = 0;
     for (r = 0; r < lr; r++) {
@@ -139,14 +139,12 @@ static double MarginalProbs(double *p, double *pi, double *pj, guint32 lr, guint
     return total;
 }
 
-static void IPFP(double  *p, 
-		 double  *pi, double  *pj,
-		 guint32 *ni, guint32 *nj,
-		 guint32  lr, guint32  lc)
+static void IPFP(double  *p, double  *pi, double  *pj,
+		 nat_uint32_t *ni, nat_uint32_t *nj, nat_uint32_t  lr, nat_uint32_t  lc)
 {
-    gboolean ready;
-    guint32 r, c;
-    guint32 steps = NSTEPS;
+    nat_boolean_t ready;
+    nat_uint32_t r, c;
+    nat_uint32_t steps = NSTEPS;
 
     ready = FALSE;
 
@@ -194,7 +192,7 @@ static double OddsRatio(double pij, double pi, double pj, double p)
     }
 }
 
-static void EMalgorithm(gboolean quiet, Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
+static void EMalgorithm(nat_boolean_t quiet, Matrix *M, Corpus *C1, Corpus *C2, int step, int last)
 {
     MatrixVal M1, M2;
     double *p  = g_new(double, MAXLEN * MAXLEN);
@@ -204,13 +202,13 @@ static void EMalgorithm(gboolean quiet, Matrix *M, Corpus *C1, Corpus *C2, int s
     double *e  = g_new(double, MAXLEN*MAXLEN);
     double *ei = g_new(double, MAXLEN);
     double *ej = g_new(double, MAXLEN);
-    guint32 k, length;
+    nat_uint32_t k, length;
     CorpusCell *s1, *s2;
-    guint32 r, c, lr, lc, l;
-    guint32 *st1 = g_new(guint32, MAXLEN + 1);
-    guint32 *st2 = g_new(guint32, MAXLEN + 1);
-    guint32 *ni  = g_new(guint32, MAXLEN + 1);
-    guint32 *nj  = g_new(guint32, MAXLEN + 1);
+    nat_uint32_t r, c, lr, lc, l;
+    nat_uint32_t *st1 = g_new(nat_uint32_t, MAXLEN + 1);
+    nat_uint32_t *st2 = g_new(nat_uint32_t, MAXLEN + 1);
+    nat_uint32_t *ni  = g_new(nat_uint32_t, MAXLEN + 1);
+    nat_uint32_t *nj  = g_new(nat_uint32_t, MAXLEN + 1);
 
     if (step % 2) {
         M1 = MATRIX_1;
@@ -312,7 +310,7 @@ int main(int argc, char **argv)
     extern int optind;
     int c;
 
-    gboolean quiet = FALSE;
+    nat_boolean_t quiet = FALSE;
     
     while ((c = getopt(argc, argv, "hqV")) != EOF) {
         switch (c) {

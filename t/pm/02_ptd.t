@@ -4,7 +4,7 @@ use Test::More tests => 23 + 5*32;
 
 use_ok "Lingua::NATools::PTD";
 
-my $ptd = Lingua::NATools::PTD->new("t/pm/02_ptd.dmp");
+my $ptd = Lingua::NATools::PTD->new("t/input/02_ptd.dmp");
 
 isa_ok $ptd => "Lingua::NATools::PTD";
 isa_ok $ptd => "Lingua::NATools::PTD::Dumper";
@@ -64,7 +64,7 @@ unlink "t/_out.dmp.xz";
 
 
 ## Reset things...
-my $ptd1 = Lingua::NATools::PTD->new("t/pm/02_ptd.dmp");
+my $ptd1 = Lingua::NATools::PTD->new("t/input/02_ptd.dmp");
 $ptd1->saveAs( sqlite => "t/02.sqlite");
 
 my $ptd2 = Lingua::NATools::PTD->new("t/02.sqlite");
@@ -95,7 +95,7 @@ unlink "t/02.sqlite";
 
 
 ### ----------- lowercasing
-$ptd1 = Lingua::NATools::PTD->new("t/pm/02_casedptd.dmp");
+$ptd1 = Lingua::NATools::PTD->new("t/input/02_casedptd.dmp");
 isa_ok $ptd1 => "Lingua::NATools::PTD"; # loaded OK
 
 $ptd1->lowercase;

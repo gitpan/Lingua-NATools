@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,8 @@
 #ifndef __PARTIALS_H__
 #define __PARTIALS_H__
 
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 
 /**
  * @file
@@ -41,20 +42,16 @@
  */
 typedef struct _partial_counts {
     /** buffer with partial counts (index corresponds to word id) */
-    guint32 *buffer;
+    nat_uint32_t *buffer;
     /** current size of the partial counts buffer */
-    guint32  size;
+    nat_uint32_t  size;
     /** current state of how full is the counts buffer */
-    guint32  last;
+    nat_uint32_t  last;
 } PartialCounts;
 
-
-PartialCounts *PartialCountsAdd(PartialCounts *partials, guint32 wid);
-
+PartialCounts *PartialCountsAdd(PartialCounts *partials, nat_uint32_t wid);
 void           PartialCountsSave(PartialCounts *partials, const char* filename);
-
 PartialCounts *PartialCountsLoad(const char* filename);
-
-void PartialCountsFree(PartialCounts *partials);
+void           PartialCountsFree(PartialCounts *partials);
 
 #endif /* __PARTIALS_H__ */

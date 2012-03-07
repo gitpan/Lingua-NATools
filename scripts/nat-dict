@@ -16,8 +16,8 @@ if ($command eq "add") {
   my $dic2 = shift;
 
   if (-f $dic1 && -f $dic2) {
-    my $dict1 = NAT::Dict::open($dic1);
-    my $dict2 = NAT::Dict::open($dic2);
+    my $dict1 = Lingua::NATools::Dict::open($dic1);
+    my $dict2 = Lingua::NATools::Dict::open($dic2);
     my $dict3 = $dict1->add($dict2);
     $dict1->close();
     $dict2->close();
@@ -92,6 +92,6 @@ Alberto Manuel Brandão Simões, E<lt>ambs@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006-2009 by Alberto Manuel Brandão Simões
+Copyright (C) 2006-2012 by Alberto Manuel Brandão Simões
 
 =cut

@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,12 @@
  */
 
 #include <stdio.h>
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 #include <zlib.h>
 #include <string.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include "natlexicon.h"
 
 /**
@@ -50,8 +52,7 @@
  * @param word a reference to a string containing a word;
  * @return the word identifier;
  */
-guint32  natlexicon_id_from_word(NATLexicon *lexicon,
-				 const gchar *word)
+nat_uint32_t natlexicon_id_from_word(NATLexicon *lexicon, const wchar_t *word)
 {
     NATCell *cell;
     cell = natlexicon_search_word(lexicon, word);
@@ -69,19 +70,18 @@ guint32  natlexicon_id_from_word(NATLexicon *lexicon,
  * @param id a word identifier;
  * @return a reference to the word identified by id.
  */
-gchar   *natlexicon_word_from_id(NATLexicon *lexicon,
-				 guint32 id)
+wchar_t *natlexicon_word_from_id(NATLexicon *lexicon, nat_uint32_t id)
 {
-    guint32 offset;
+    nat_uint32_t offset;
     if (id == lexicon->count-1) {
-	return g_strdup("(null)");
+	return wcsdup(L"(null)");
     }
     offset = lexicon->cells[id].offset;
     if (lexicon->cells[id].id != id) {
 	fprintf(stderr,"** WARNING: ids differ\n");
 	fprintf(stderr, "** ID: %u,%u COUNT: %d\n", id,lexicon->cells[id].id, lexicon->count);
     }
-    return (char*)(lexicon->words + offset);
+    return (wchar_t*)(lexicon->words + offset);
 }
 
 /**
@@ -92,20 +92,18 @@ gchar   *natlexicon_word_from_id(NATLexicon *lexicon,
  * @param id a word identifier;
  * @return the number of occurrences of the word;
  */
-guint32 natlexicon_count_from_id(NATLexicon *lexicon,
-				 guint32 id)
+nat_uint32_t natlexicon_count_from_id(NATLexicon *lexicon, nat_uint32_t id)
 {
-    if (id == lexicon->count-1)
-	return 0;
+    if (id == lexicon->count-1) return 0;
     return lexicon->cells[id].count;
 }
 
 static void natlexicon_merge(NATLexicon *self,
-			     NATLexicon *lex1, guint32 idx1, guint32 *itable1,
-			     NATLexicon *lex2, guint32 idx2, guint32 *itable2)
+			     NATLexicon *lex1, nat_uint32_t idx1, nat_uint32_t *itable1,
+			     NATLexicon *lex2, nat_uint32_t idx2, nat_uint32_t *itable2)
 {   
-    gint cmp;
-    gchar *tmp;
+    int cmp;
+    wchar_t *tmp;
 
     if ((idx1 == lex1->count-1) && (idx2 == lex2->count-1)) {
 	/* TRATAR DO NULL */
@@ -118,8 +116,8 @@ static void natlexicon_merge(NATLexicon *self,
     }
     else if (idx1 == lex1->count-1) cmp = 1;
     else if (idx2 == lex2->count-1) cmp = -1;
-    else cmp = strcmp((char*)(lex1->words+lex1->cells[idx1].offset),
-		      (char*)(lex2->words+lex2->cells[idx2].offset));
+    else cmp = wcscmp((wchar_t*)(lex1->words+lex1->cells[idx1].offset),
+		      (wchar_t*)(lex2->words+lex2->cells[idx2].offset));
     
     if (cmp == 0) {
 	self->cells[self->count].id = self->count;
@@ -182,31 +180,31 @@ static void natlexicon_merge(NATLexicon *self,
  * @param it2  second indirection table
  * @return a new NATLexicon object with the lexicon conciliated
  */
-NATLexicon *natlexicon_conciliate(NATLexicon *lex1, guint32** it1,
-				  NATLexicon *lex2, guint32** it2)
+NATLexicon *natlexicon_conciliate(NATLexicon *lex1, nat_uint32_t** it1,
+				  NATLexicon *lex2, nat_uint32_t** it2)
 {
     NATLexicon *self;
     
-    gchar   *merged_str = NULL;
-    guint32  merged_str_offset = 0;
-    guint32  merged_str_size = 0;
+    wchar_t      *merged_str = NULL;
+    nat_uint32_t  merged_str_offset = 0;
+    nat_uint32_t  merged_str_size = 0;
 
-    NATCell *merged_cells = NULL;
-    guint32  merged_cells_size = 0;
-    guint32  merged_cells_offset = 0;
+    NATCell      *merged_cells = NULL;
+    nat_uint32_t  merged_cells_size = 0;
+    nat_uint32_t  merged_cells_offset = 0;
 
-    guint32 *itable1, *itable2;
+    nat_uint32_t *itable1, *itable2;
     
-    itable1 = g_new0(guint32, lex1->words_limit);
+    itable1 = g_new0(nat_uint32_t, lex1->words_limit);
     *it1 = itable1;
-    itable2 = g_new0(guint32, lex2->words_limit);
+    itable2 = g_new0(nat_uint32_t, lex2->words_limit);
     *it2 = itable2;
 
     merged_cells_size = lex1->count + lex2->count;
     merged_cells = g_new0(NATCell, merged_cells_size);
 
     merged_str_size = lex1->words_limit + lex2->words_limit;
-    merged_str = g_new0(gchar, merged_str_size);
+    merged_str = g_new0(wchar_t, merged_str_size);
 
     self = g_new(NATLexicon, 1);
     self->words_limit = merged_str_offset;
@@ -223,16 +221,16 @@ NATLexicon *natlexicon_conciliate(NATLexicon *lex1, guint32** it1,
 }
 
 
-static NATCell *natlexicon_bsearch_word(NATLexicon *lex,
-					guint32 low, guint32 high, const gchar *word)
+static NATCell *natlexicon_bsearch_word(NATLexicon *lex, nat_uint32_t low,
+                                        nat_uint32_t high, const wchar_t *word)
 {
-    guint32 middle;
+    nat_uint32_t middle;
     int cmp;
 
     if (high < low) return NULL;
 
     middle = (high+low)/2;
-    cmp = strcmp(word, lex->words + lex->cells[middle].offset);
+    cmp = wcscmp(word, lex->words + lex->cells[middle].offset);
 
     if (cmp == 0)
 	return &lex->cells[middle];
@@ -250,7 +248,7 @@ static NATCell *natlexicon_bsearch_word(NATLexicon *lex,
  * @param word Word to be searched
  * @return The NATCell object of that word, or NULL if not found
  */
-NATCell *natlexicon_search_word(NATLexicon *lexicon, const gchar *word)
+NATCell *natlexicon_search_word(NATLexicon *lexicon, const wchar_t *word)
 {
     return natlexicon_bsearch_word(lexicon, 0, lexicon->count - 1, word);
 }

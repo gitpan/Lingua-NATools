@@ -88,9 +88,9 @@ Among the techniques that are used to specify the behavior of this kind of syste
 $
 Due to the critical features that are in general involved in these systems , their specifications must be strictly validated . 
 $
-Thus , the Mutation Analysis , a fault ­ based criterion usually used for program testing , has been explored in the context of Petri Net testing . 
+Thus , the Mutation Analysis , a fault Â­ based criterion usually used for program testing , has been explored in the context of Petri Net testing . 
 $
-The objective of this research is the implementation of the Proteum ­ RS / PN tool , aiming at the automation of the Petri Net testing and validation process based on Mutation Analysis , since its manual application is impracticable . 
+The objective of this research is the implementation of the Proteum Â­ RS / PN tool , aiming at the automation of the Petri Net testing and validation process based on Mutation Analysis , since its manual application is impracticable . 
 $
 The Clustered Knapsack Problem can be stated as the following hypothetical situation : an alpinist should load a knapsack of limited capacity with possibly useful items . 
 $
@@ -214,7 +214,7 @@ The use of constrained mutation and test set minimization allows the application
 $
 The object-oriented reverse engineering of a legacy system developed using the procedural paradigm is the basis for two different reengineering approaches . 
 $
-In the first , reengineering is done to change the implementation paradigm by segmentation , followed by its semi ­ automatic transformation into an object-oriented language . 
+In the first , reengineering is done to change the implementation paradigm by segmentation , followed by its semi Â­ automatic transformation into an object-oriented language . 
 $
 In the second , recurring patterns are first recognized in the object model produced by the reverse engineering , and then the reengineering is done adopting these patterns . 
 $
@@ -224,15 +224,15 @@ The original version of the legacy system used in this experience has about twen
 $
 For the reverse engineering phase we used the Fusion / RE method , and proposed its evolution , adding features to detail the abstraction phase of its system analysis model . 
 $
-To change the system orientation paradigm from procedural to object ­ oriented we propose two additional phases to be conducted after the application of the Fusion / RE method : the forward design of the system and the legacy code segmentation . 
+To change the system orientation paradigm from procedural to object Â­ oriented we propose two additional phases to be conducted after the application of the Fusion / RE method : the forward design of the system and the legacy code segmentation . 
 $
 Hints and rationales are supplied to conduct the code segmentation . 
 $
-The code transformation from segmented Clipper to Java is done with support of a Draco ­ Puc machine . 
+The code transformation from segmented Clipper to Java is done with support of a Draco Â­ Puc machine . 
 $
 We propose a strategy for pattern recognition based on the system object model obtained through reverse engineering . 
 $
-By means of this strategy we can recognize instances of Type ­ Object , Association ­ Object , State Across a Collection and Behaviour Across a Collection patterns . 
+By means of this strategy we can recognize instances of Type Â­ Object , Association Â­ Object , State Across a Collection and Behaviour Across a Collection patterns . 
 $
 We carried out Delphi implementation experiments of some of these patterns . 
 $
@@ -256,11 +256,11 @@ With the accomplishment of these studies , we hope to contribute towards the est
 $
 Testing activities in the development of Reactive Systems are extremely relevant , as well as the availability of tools that support these activities , since failures in these systems may have serious economic and / or social consequences . 
 $
-The Mutation Analysis is one of the fault ­ based testing criteria , and it is usually applied during unit testing . This criterion has been investigated in the context of testing and validation activities of Reactive Systems behavioral specifications based on Finite State Machines , Statecharts and Petri Nets . 
+The Mutation Analysis is one of the fault Â­ based testing criteria , and it is usually applied during unit testing . This criterion has been investigated in the context of testing and validation activities of Reactive Systems behavioral specifications based on Finite State Machines , Statecharts and Petri Nets . 
 $
-The specification of a tool named Proteum ­ RS was carried out and constitutes the first step to support the application of the Mutation Analysis Criterion in the context of Reactive Systems . 
+The specification of a tool named Proteum Â­ RS was carried out and constitutes the first step to support the application of the Mutation Analysis Criterion in the context of Reactive Systems . 
 $
-This dissertation aims at implementing an instantiation of Proteum ­ RS , called Proteum-RS / ST , to support testing of specification based on Statecharts . 
+This dissertation aims at implementing an instantiation of Proteum Â­ RS , called Proteum-RS / ST , to support testing of specification based on Statecharts . 
 $
 We intend to provide subsidies for investigating criteria traditionally applied at the unit level for testing Reactive Systems specifications , in particular in the context of Statecharts based specifications . 
 $
@@ -270,15 +270,15 @@ In these systems , faults can result in great losses .
 $
 The use of rigorous methods and techniques for the specification of their behavior is essential to avoid inconsistencies and ambiguities . 
 $
-Petri Nets have been used for reactive ­ system specification . 
+Petri Nets have been used for reactive Â­ system specification . 
 $
 Testing and validation of the underlying model are essential activities for the production of such systems . 
 $
-For this reason the Mutant Analysis -- a fault ­ based criterion usually used for program testing -- has been explored in the context of specification testing of reactive systems . 
+For this reason the Mutant Analysis -- a fault Â­ based criterion usually used for program testing -- has been explored in the context of specification testing of reactive systems . 
 $
 The development of tools to support its application is necessary , since its manual application is impracticable . 
 $
-The objective of this dissertation is the implementation of Proteum ­ RS / PN , a testing tool which supports the application of Mutant Analysis criterion to validate Petri Nets-based specifications . 
+The objective of this dissertation is the implementation of Proteum Â­ RS / PN , a testing tool which supports the application of Mutant Analysis criterion to validate Petri Nets-based specifications . 
 $
 Several techniques , criteria and tools have been developed to make the testing activity more systematic and aiming at overcoming associated time and cost constraints . 
 $
@@ -326,19 +326,19 @@ This dissertation discusses a procedure to help the first step of the FUSION-RE 
 $
 This procedure comprises a process to create a knowledge base ( IPAIA Knowledge Acquisition Process applied to reverse engineering domain ) and guidelines for using this knowledge base to construct functional visions of the system . 
 $
-Dependable object ­ oriented software should incorporate exception handling activities in order to behave suitably in a great number of situations even in the presence of errors . 
+Dependable object Â­ oriented software should incorporate exception handling activities in order to behave suitably in a great number of situations even in the presence of errors . 
 $
 In this context , an exception handling mechanism is fundamental to detect and retrieve errors , and to activate suitable measures to restore the normal activity of the system . 
 $
 The development of an exception handling mechanism is not a trivial task , especially when concurrence is one of the characteristics of the software system . 
 $
-The main aims of this dissertation are the design and implementation of an exception handling mechanism for developing dependable object ­ oriented software . 
+The main aims of this dissertation are the design and implementation of an exception handling mechanism for developing dependable object Â­ oriented software . 
 $
 In order to build the proposed mechanism , we apply techniques of software structuring , such as computational reflection and design patterns . 
 $
 Two contributions are considered fundamental . 
 $
-The first , characterized by technical aspects and practical uses , is the design and implementation of an exception handling mechanism using Java language and a reflective software architecture called Guaraná . 
+The first , characterized by technical aspects and practical uses , is the design and implementation of an exception handling mechanism using Java language and a reflective software architecture called GuaranÃ¡ . 
 $
 The proposed mechanism especially supports concurrent exception handling . 
 $
@@ -354,7 +354,7 @@ In each phase of the method models are built so that they can be improved and ex
 $
 We discuss three implementation options for a hypermedia application specified by HMBS / M : interpreted , translated and freely translated , emphasizing the first two , which are implemented using a tool that supports HMBS , the HyScharts , and using the WWW environment ( HTML standard ). 
 $
-A case study based on the graduate and undergraduate course catalogs of the Institute of Mathematical Sciences and Computing of the University of São Paulo is presented to illustrate and validate HMBS / M. 
+A case study based on the graduate and undergraduate course catalogs of the Institute of Mathematical Sciences and Computing of the University of SÃ£o Paulo is presented to illustrate and validate HMBS / M. 
 $
 The dynamics and flexibility of Web site authoring , on the one hand , popularize the Internet use increasingly , but , on the other hand , they lead easily to inconsistent information . 
 $
@@ -392,7 +392,7 @@ Moreover , this research extended the capacity of the information text node edit
 $
 Thus , the SASHE became able to process and organize instructional materials prepared in its own environment , in the WWW ( World-Wide Web ) environment , as well as in ordinary word processors . 
 $
-The experience with authoring multimedia material for educational purposes shows a major problem : how to provide an easy and efficient way to handle multimedia objects so that non ­ expert users ( namely school teachers ) can be able to design and build their own presentations ? 
+The experience with authoring multimedia material for educational purposes shows a major problem : how to provide an easy and efficient way to handle multimedia objects so that non Â­ expert users ( namely school teachers ) can be able to design and build their own presentations ? 
 $
 A basic infrastructure which stores and efficiently delivers the video data is necessary . However , another important point is the organization of these data stored into the server in a way that facilitates their access by users . 
 $
@@ -530,17 +530,17 @@ This dissertation proposes a tool that helps the generation of texts by writers 
 $
 It is the Verifica , a system to check and give advice on spelling in Portuguese . 
 $
-This spell ­ checker is available in a textual user interface and in a graphical user interface . 
+This spell Â­ checker is available in a textual user interface and in a graphical user interface . 
 $
 The graphical interface was implemented using the Tcl / Tk toolkit , a programming system for developing and using graphical user interface applications . 
 $
-Verifica is also available on ­ line at http://www.dcc.ufmg/verifica. 
+Verifica is also available on Â­ line at http://www.dcc.ufmg/verifica. 
 $
 The system tests the occurrence of input words in a Portuguese language vocabulary stored in an acyclic deterministic finite automaton . 
 $
 An automaton is an efficient data structure for lexicon storage because it provides a compact vocabulary representation besides an efficient access time . 
 $
-Since a traditional spell ­ checker has some deficiencies , we studied a way to refine the orthographic analyses by looking also at the phrase structure . 
+Since a traditional spell Â­ checker has some deficiencies , we studied a way to refine the orthographic analyses by looking also at the phrase structure . 
 $
 So , we implemented an algorithm that attributes syntactic categorization to Portuguese words . 
 $
@@ -662,7 +662,7 @@ We adopted advanced methodologies and tools for hardware project to accelerate t
 $
 The performance results are presented and discussed , indicating the feasibility and efficiency of the adopted approach and methodology for this kind of problem . 
 $
-This MSc dissertation discusses an extension of the ASiA ( Ambiente de Simulação Automático ) for computer architecture simulation named Architecture Module . 
+This MSc dissertation discusses an extension of the ASiA ( Ambiente de SimulaÃ§Ã£o AutomÃ¡tico ) for computer architecture simulation named Architecture Module . 
 $
 This module allows the use of previously defined architectures ( with possible alteration of parameters ) or new architecture models using specific tools for computer architecture simulation . 
 $
@@ -690,13 +690,13 @@ We carried out studies aiming at validating and assessing the tool .
 $
 The results obtained show that the tool has a stable behavior and potential to be easily used in both PVM and MPI environments . 
 $
-The MPI is an attempt of standardization for message ­ passing programming environments aiming at high portability and efficiency in any platform . 
+The MPI is an attempt of standardization for message Â­ passing programming environments aiming at high portability and efficiency in any platform . 
 $
 The requirement of high portability without loss of efficiency makes the MPI an extensive standard . 
 $
-Point ­ to ­ point communication routines , for instance , are structured in many ways , issuing different performances . 
+Point Â­ to Â­ point communication routines , for instance , are structured in many ways , issuing different performances . 
 $
-This dissertation aims at studying the performance of MPI point ­ to ­ point communication routines in a personal computer network running LINUX operating system in order to evaluate the cost-effectiveness of each routine objectively . 
+This dissertation aims at studying the performance of MPI point Â­ to Â­ point communication routines in a personal computer network running LINUX operating system in order to evaluate the cost-effectiveness of each routine objectively . 
 $
 This evaluation is performed through the execution of benchmarks and of an application example , executed on three MPI public domain implementations ( MPICH , LAM and UNIFY ), allowing a comparison between implementations . 
 $
@@ -732,17 +732,17 @@ With the purpose of facilitating taxonomy comprehension and allowing the executi
 $
 This dissertation also discusses a prototype of a magnetic disk simulator that can be used as a kernel for the development of a RAID simulator to be used by the environment . 
 $
-This dissertation discusses a tool to support the development of RPC ­ based distributed applications in the Windows 95 environment . 
+This dissertation discusses a tool to support the development of RPC Â­ based distributed applications in the Windows 95 environment . 
 $
-It also discusses some applications built to validate the system , which follow the client ­ server model . 
+It also discusses some applications built to validate the system , which follow the client Â­ server model . 
 $
 We carry out a theoretical review of the most relevant topics related to the field and present the implementation details . 
 $
-This tool was implemented using object ­ oriented techniques and comprises an automatic Stub Generator and an RPC Library , together with a Binding Service . 
+This tool was implemented using object Â­ oriented techniques and comprises an automatic Stub Generator and an RPC Library , together with a Binding Service . 
 $
 The distributed applications built try to explore the tool's full potential . We provide general guidelines regarding the development of distributed applications for the Windows 95 environment . 
 $
-This dissertation discusses a performance evaluation of the portable platforms PVM and MPI when running in a distributed system and in a parallel architecture ­ SP2 . 
+This dissertation discusses a performance evaluation of the portable platforms PVM and MPI when running in a distributed system and in a parallel architecture Â­ SP2 . 
 $
 The evaluation is performed through a number of sorting parallel algorithms , using four implementations : IBM MPI and IBM PVMe ( running in the SP2 ), MPICH and PVM ( running in a distributed system ). 
 $
@@ -758,11 +758,11 @@ They offer an adequate computing power for the applications that , although not 
 $
 PVM ( Parallel Virtual Machine ) is an example of a message passing library widely discussed in the related literature which allows the implementation of parallel virtual machines using workstations ( normally RISC machines running UNIX operating system ). 
 $
-In this context , this MSc dissertation describes in detail the implementation of PVM ­ W95 ( Parallel Virtual Machine for Windows95 ), which comprises a message passing environment ( similar to PVM ), allowing the creation of a parallel virtual machine using personal computers ( working as workstations in a distributed computing environment ), interconnected in a communication network and running the Windows95 operating system . 
+In this context , this MSc dissertation describes in detail the implementation of PVM Â­ W95 ( Parallel Virtual Machine for Windows95 ), which comprises a message passing environment ( similar to PVM ), allowing the creation of a parallel virtual machine using personal computers ( working as workstations in a distributed computing environment ), interconnected in a communication network and running the Windows95 operating system . 
 $
-We carried out preliminary studies aiming at the validation and performance evaluation of PVM ­ W95 . 
+We carried out preliminary studies aiming at the validation and performance evaluation of PVM Â­ W95 . 
 $
-The results obtained show that the PVM ­ W95 is stable and the parallel applications developed reached excellent speedups , considering the hardware adopted . 
+The results obtained show that the PVM Â­ W95 is stable and the parallel applications developed reached excellent speedups , considering the hardware adopted . 
 $
 The main objectives of this dissertation are the development and the evaluation of numerical parallel algorithms and their execution on parallel machines ( multiprocessor machines , vectorial machines and parallel virtual environments ). 
 $
@@ -798,7 +798,7 @@ This thesis approaches a study about the viability of using the CMB conservative
 $
 The technique used to analyze the results comprises data acquisition during simulation execution for a large number of models . 
 $
-The simulation of these models is performed on a special ­ built distributed simulation environment ( ParSMPL ) developed and presented in this thesis , implementing a CMB synchronization protocol . 
+The simulation of these models is performed on a special Â­ built distributed simulation environment ( ParSMPL ) developed and presented in this thesis , implementing a CMB synchronization protocol . 
 $
 The results obtained in this research are split according to different views taking to distinct sets of contributions . 
 $
@@ -814,11 +814,11 @@ Following the procedures proposed and using the ParSMPL a user can count on prec
 $
 This thesis proposes and describes in detail the design of AMIGO ( DynAMical FlexIble SchedulinG EnvirOnment ), a novel software tool that makes possible the union of different algorithm scheduling proposals , in a way completely transparent to the user . 
 $
-AMIGO is able to make flexible the scheduling activity ( at run ­ time ), covering all the steps from its configuration to its effective application . 
+AMIGO is able to make flexible the scheduling activity ( at run Â­ time ), covering all the steps from its configuration to its effective application . 
 $
 Besides the dynamic flexibility and transparency , AMIGO is also modular : it is split into modules that , among other advantages , facilitate its execution on different platforms . 
 $
-This research also gives its contribution presenting a critical analysis of the process ­ scheduling literature , pointing out the existing divergences and proposing important convergence points . 
+This research also gives its contribution presenting a critical analysis of the process Â­ scheduling literature , pointing out the existing divergences and proposing important convergence points . 
 $
 Thus , the literature survey presented acts as a precious introductory material , so that beginners form a general context on the field and then deepen more quickly their studies in other more specific research . 
 $

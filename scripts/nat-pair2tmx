@@ -4,10 +4,10 @@ use Lingua::NATools;
 use warnings;
 use strict;
 
-our ($h, $utf8);
+our ($h);
 sub usage {
     print "nat-pair2tmx: join two files in NATools input format into a TMX.\n\n";
-    print "\tnat-pair2tmx [-utf8] <file1> <lang1> <file2> <lang2>\n\n";
+    print "\tnat-pair2tmx <file1> <lang1> <file2> <lang2>\n\n";
     print "For more help, please run 'perldoc nat-pair2tmx'\n";
     exit 0;
 }
@@ -20,11 +20,7 @@ my $targetL = shift or usage();
 
 my ($l0,$l1);
 
-if ($utf8) {
-    print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-} else {
-    print "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-}
+print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 print "<!DOCTYPE tmx SYSTEM \"http://www.lisa.org/tmx/tmx14.dtd\">\n";
 
 print "<tmx>\n";

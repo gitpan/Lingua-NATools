@@ -140,6 +140,8 @@ Note that the C<dump> method writes to the Standard Output stream.
 sub dump {
     my $self = shift;
 
+    binmode STDOUT, ":utf8";
+    print "use utf8;\n";
     print "\$a = {\n";
     $self->downtr(
                   sub {
@@ -559,7 +561,7 @@ sub downtr {
     for my $word (@keys) {
         my $res = $sub->($word,
                          $self->count($word),
-                         $self->_trans_hash($word));
+                         $self->transHash($word));
         if ($opt{filter}) {
             if (!defined($res)) {
                 $self->_delete_word($word)
@@ -591,10 +593,10 @@ sub _update_word {
     }
 }
 
-sub _trans_hash {
-    my ($self, $word) = @_;
-    return %{$self->{$word}{trans}};
-}
+# sub _trans_hash {
+#     my ($self, $word) = @_;
+#     return %{$self->{$word}{trans}};
+# }
 
 =head2 C<toentry>
 

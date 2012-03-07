@@ -1,6 +1,6 @@
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,22 +18,36 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef __ISOLATIN_H__
-#define __ISOLATIN_H__
+#ifndef __UNICODE_H__
+#define __UNICODE_H__ 1
 
 /**
  * @file
- * @brief Header file for parse corpora module
+ * @brief Header file for unicode-aware methods
  */
 
 
-char*                  ReadText               (const char      *filename);
+/* ------ Strings ------- */
 
-unsigned short         NextTextSentence       (char           **sen,
-					       char           **text,
-					       unsigned short   maxLen,
-					       char             sd,
-					       char             hd);
+#define NAT_STRING_START_SIZE 100
+#define NAT_STRING_INCREMENT  50
 
+typedef struct _nat_string {
+    wchar_t *str;
+    int buffer_size;
+    int length;
+} nat_string, nat_string_t;
 
-#endif /* __ISOLATIN_H__ */
+nat_string_t*  nat_string_new();
+nat_string_t*  nat_string_append(nat_string_t *str, const wchar_t *format, ...);
+void           nat_string_free(nat_string_t *str);
+
+//
+
+wchar_t*       ReadText(const char *filename);
+unsigned short NextTextSentence(wchar_t **sen, wchar_t **text,
+                                unsigned short maxLen,
+                                wchar_t sd, wchar_t hd);
+void           init_locale(void);
+
+#endif /* __UNICODE_H__ */

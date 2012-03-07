@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2011  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,15 +19,18 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <wchar.h>
+#include <string.h> 
 #include "srvshared.h"
+#include "unicode.h"
 
 int send_TU(int sd, TU* tu)
 {
     char sbuf[1024];
-    gboolean toexit = FALSE;
+    nat_boolean_t toexit = FALSE;
 
     if (tu -> quality >= 0.0) {
-	sprintf(sbuf, "%% %f\n", tu -> quality);
+	snprintf(sbuf, 1024, "%% %f\n", tu->quality);
 	if (write(sd, sbuf, strlen(sbuf)) < 0)
 	    toexit = 1;
     }
@@ -54,27 +57,27 @@ void destroy_TU(TU* tu) {
     }
 }
 
-char *convert_sentence(WordLstNode **W, CorpusCell *sentence) {
+char *convert_sentence(Words *W, CorpusCell *sentence) {
     char *ans;
     CorpusCell *ptr;
     GString *str = g_string_new("");
     ptr = sentence;
-    while (ptr -> word) {
-    	char *word = word_list_get_by_id(W, ptr->word);
+    while (ptr->word) {
+    	wchar_t *word = words_get_by_id(W, ptr->word);
     	if (ptr->flags & 0x1) {
     	    word = uppercase_dup(word);
     	} else if (ptr->flags & 0x2) {
     	    word = capital_dup(word);
     	} else {
-    	    word = g_strdup(word);
+    	    word = wcsdup(word);
     	}
-    	g_string_append_printf(str, "%s ", word);
+        g_string_append_printf(str, "%ls ", word);
     	g_free(word);
     	ptr++;
     }
 
-    ans = g_strdup(str->str);
-    g_string_free(str, TRUE);
+    ans = str->str; //strdup((wchar_t*)str->str);
+    g_string_free(str, FALSE);
 
     return ans;
 }
@@ -83,9 +86,9 @@ TU* create_TU(CorpusInfo *corpus, double q,
               CorpusCell *source, CorpusCell *target) {
     TU *tu = g_new(TU, 1);			
     
-    tu -> quality = (corpus->has_rank) ? q : -1.0;
-    tu -> source = convert_sentence(corpus->SourceLexIds, source);
-    tu -> target = convert_sentence(corpus->TargetLexIds, target);
+    tu->quality = (corpus->has_rank) ? q : -1.0;
+    tu->source = convert_sentence(corpus->SourceLex, source);
+    tu->target = convert_sentence(corpus->TargetLex, target);
 
     return tu;
 }
@@ -99,7 +102,6 @@ struct callback {
 
 static int list_grams_callback(void *dataS, int argc, char **argv, char **azColName) {
     struct callback *data = (struct callback*)dataS;
-    char *word;
     GSList *l = NULL;
     int i;
 
@@ -123,7 +125,7 @@ static int dump_grams_callback(void *dataS, int argc, char **argv, char **azColN
 }
 
 GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
-                    char words[50][150], int n) {
+                    wchar_t words[50][150], int n) {
     char* tablename;
     char* word[4];
     char* sql;
@@ -142,44 +144,44 @@ GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
         
         /* Calculate table name */
         switch (n) {
-            case 2:
-                tablename = g_strdup("bigrams");
-                break;
-            case 3:
-                tablename = g_strdup("trigrams");
-                break;
-            case 4:
-                tablename = g_strdup("tetragrams");
-                break;
-            default:
-                if (fd) ERROR(fd);
-                return NULL;
+        case 2:
+            tablename = g_strdup("bigrams");
+            break;
+        case 3:
+            tablename = g_strdup("trigrams");
+            break;
+        case 4:
+            tablename = g_strdup("tetragrams");
+            break;
+        default:
+            if (fd) ERROR(fd);
+            return NULL;
         }
-
+        
         /* Construct SQL Query -- Hairy! */
         for (i = 0; i < 4; i++) {
-        	if (i < n) {
-        	    if (strcmp("*", words[2+i]) == 0 || strcmp("[]", words[2+i])) {
-        	        /* [] should mean end or beginning of string...
-        	           Not yet available */
-        		    word[i] = g_strdup("");
-        	    } else {
-            		if (havewhere) {
-            		    word[i] = g_strdup_printf(" AND word%d='%s'", i+1, words[2+i]);
-            		} else {
-            		    word[i] = g_strdup_printf(" WHERE word%d='%s'", i+1, words[2+i]);
-            		    havewhere = 1;
-            		}
-        	    }
-        	} else {
-        	    word[i] = g_strdup("");
-        	}
+            if (i < n) {
+                if (wcscmp(words[2+i], L"*") == 0 || wcscmp(L"[]", words[2+i])==0) {
+                    /* [] should mean end or beginning of string...
+                       Not yet available */
+                    word[i] = strdup("");
+                } else {
+                    if (havewhere) {
+                        asprintf(&word[i]," AND w%d='%ls'",i+1, words[2+i]);
+                    } else {
+                        asprintf(&word[i]," WHERE w%d='%ls'",i+1, words[2+i]);
+                        havewhere = 1;
+                    }
+                }
+            } else {
+                word[i] = strdup("");
+            }
         }
 
         /* HARD CODED IS BAD IDEA!!!! */
         sql = g_strdup_printf("SELECT * FROM %s%s%s%s%s LIMIT 10",
                               tablename,
-                              word[0], word[1], word[2], word[3]);
+                              word[0], word[1], word[2], word[3]); 
 
         data = g_new0(struct callback, 1);
         data->fd = fd;
@@ -189,12 +191,12 @@ GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
 
         /* Check if the ngrams files are already opened. If not, open them. */
         if (direction > 0 && !corpus->SourceGrams) {
-            gchar* tmp = g_strdup_printf("%s/S.%%d.ngrams", corpus->filepath);
+            char* tmp = g_strdup_printf("%s/S.%%d.ngrams", corpus->filepath);
             corpus->SourceGrams = ngram_index_open_and_attach(tmp);
             g_free(tmp);
         }
         if (direction < 0 && !corpus->TargetGrams) {
-            gchar* tmp = g_strdup_printf("%s/T.%%d.ngrams", corpus->filepath);
+            char* tmp = g_strdup_printf("%s/T.%%d.ngrams", corpus->filepath);
             corpus->TargetGrams = ngram_index_open_and_attach(tmp);            
             g_free(tmp);
         }
@@ -203,8 +205,8 @@ GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
             (direction < 0 && !corpus->TargetGrams)) {
             g_free(sql);
             g_free(tablename);
-			for (j = 0; j < i-1; j++) g_free(word[j]);
-			ERROR(fd);
+            for (j = 0; j < i-1; j++) g_free(word[j]);
+            ERROR(fd);
             return NULL;                    
         }
 
@@ -239,19 +241,19 @@ GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
 
 
 GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
-		  gboolean both, gboolean exact_match,
-		  char words[50][150], int i) {
+		  nat_boolean_t both, nat_boolean_t exact_match,
+		  wchar_t words[50][150], int i) {
 
     GSList *results = NULL;
     
     int j = 2;
-    guint32 wids[50];
-    guint32 total = 20;
-    guint32 *occs = NULL, *occs1 = NULL, *occs2 = NULL;
-    guint32 wid;
-    gboolean need_free = FALSE;
-    guint32 *otherwids = NULL;
-    guint32 counter;
+    nat_uint32_t wids[50];
+    nat_uint32_t total = 20;
+    nat_uint32_t *occs = NULL, *occs1 = NULL, *occs2 = NULL;
+    nat_uint32_t wid;
+    nat_boolean_t need_free = FALSE;
+    nat_uint32_t *otherwids = NULL;
+    nat_uint32_t counter;
     TU* tu;
 
     if (!corpus || !direction || corpus->standalone_dictionary) {
@@ -259,15 +261,15 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
 	    return NULL;
     } else {
 	
-    	if (strcmp(words[j], "<=>") == 0 || strcmp(words[j], "<->") == 0) {
+    	if (wcscmp(words[j], L"<=>") == 0 || wcscmp(words[j], L"<->") == 0) {
     	    if (fd) ERROR(fd);
     	    return NULL;
     	}
 
-    	if (strcmp(words[j], "*") == 0) {
+    	if (wcscmp(words[j], L"*") == 0) {
     	    wids[j-2] = 1;
     	} else {
-    	    wid = word_list_get_id( (direction>0)?corpus->SourceLex:corpus->TargetLex, words[j]);
+    	    wid = words_get_id( (direction>0)?corpus->SourceLex:corpus->TargetLex, words[j]);
 
     	    if (!wid) {
     		if (fd) ERROR(fd);
@@ -285,12 +287,12 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
     	if (i > 3) {
     	    for (j = 3; j < i; j++) {
 
-    		if (words[j][0] == '#' && isdigit(words[j][1])) {
-    		    sscanf(words[j],"#%d", &total);
+    		if (words[j][0] == '#' && iswdigit(words[j][1])) {
+    		    swscanf(words[j], L"#%d", &total);
     		    total = total<0?20:(total>1000?1000:total);
     		    wids[j-2] = 0;
     		    break;
-    		} else if (strcmp(words[j], "<=>") == 0 || strcmp(words[j], "<->") == 0) {
+    		} else if (wcscmp(words[j], L"<=>") == 0 || wcscmp(words[j], L"<->") == 0) {
     		    if (direction < 0) {
     			if (fd) ERROR(fd);
     			return NULL;
@@ -299,10 +301,10 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
     		    wids[j-2] = 0;
     		    otherwids = &(wids[j-1]);
     		} else {
-    		    if (strcmp(words[j], "*") == 0) {
+    		    if (wcscmp(words[j], L"*") == 0) {
     			wids[j-2] = 1;
     		    } else {
-    			wid = word_list_get_id( (direction > 0)?corpus->SourceLex:corpus->TargetLex, words[j]);
+    			wid = words_get_id( (direction > 0)?corpus->SourceLex:corpus->TargetLex, words[j]);
 			
     			if (!wid) {
     			    if (need_free) g_free(occs);
@@ -334,10 +336,10 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
 	occs1 = occs;
 	
 	while(occs1 && *occs && counter < total) {
-	    guchar  chunk;
+	    nat_uchar_t  chunk;
 	    double q1 = -1, q2 = -1;
-	    gboolean has_kwalitee = FALSE;
-	    guint32 sentence = unpack(*occs, &chunk);
+	    nat_boolean_t has_kwalitee = FALSE;
+	    nat_uint32_t sentence = unpack(*occs, &chunk);
 	    CorpusCell *src, *trg;
 
 	    src = corpus_retrieve_sentence(corpus,  TRUE, chunk, sentence-1, &q1);
@@ -349,10 +351,10 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
     		if (corpus_strstr(src, wids) && corpus_strstr(trg, otherwids)) {
     		    tu = create_TU(corpus, q1, src, trg);
     		    if (fd) {
-        			if (send_TU(fd, tu)) break;
-        			    destroy_TU(tu);
+                        if (send_TU(fd, tu)) break;
+                        destroy_TU(tu);
     		    } else {
-    			    results = g_slist_append(results, tu);
+                        results = g_slist_append(results, tu);
     		    }
     		    counter ++;
     		}
@@ -408,16 +410,16 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
 }
 
 CorpusCell *corpus_retrieve_sentence(CorpusInfo* corpus,
-				     gboolean source,
-				     const guchar chunk,
-				     guint32 sentence,
+				     nat_boolean_t source,
+				     const nat_uchar_t chunk,
+				     nat_uint32_t sentence,
 				     double *kwalitee) 
 {
-    guint32 begin, end, delta;
-    gchar *rank_filename;
-    guint32 *offsets;
+    nat_uint32_t begin, end, delta;
+    char *rank_filename;
+    nat_uint32_t *offsets;
     double *ranks = NULL;
-    guint32 size;
+    nat_uint32_t size;
     FILE *fh;
     CorpusCell *buf;
 
@@ -450,7 +452,7 @@ CorpusCell *corpus_retrieve_sentence(CorpusInfo* corpus,
     return buf;
 }
 
-double* rank_load(CorpusInfo *corpus, const char* file, const guint32 size) {
+double* rank_load(CorpusInfo *corpus, const char* file, const nat_uint32_t size) {
     FILE *rank;
     
     if (corpus->rank_cache1 && strcmp(corpus->rank_cache_filename1, file) == 0) {

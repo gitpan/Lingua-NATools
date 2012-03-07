@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,8 @@
  */
 
 #include <stdio.h>
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 #include <zlib.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,13 +45,13 @@
 
 
 
-static void print_quoted(gchar *str)
+static void print_quoted(wchar_t *str)
 {
     printf("'");
     while(*str) {
 	if (*str == '\'') printf("\\");
 	if (*str == '\\') printf("\\");
-	printf("%c", *str);
+	printf("%lc", *str);
 	str++;
     }
     printf("'");
@@ -60,7 +61,7 @@ static void print_quoted(gchar *str)
  * @brief Gets a possible translation for a word.
  *
  * @param self a reference to a NATDict object.
- * @param language a boolean identifying the language being used: 0 for 
+ * @param language a bool identifying the language being used: 0 for 
  *   the source language and 1 for the target language.
  * @param wid the id identifier of the word being searched.
  * @param pos the position(offset) on the table we are accessing. Notice
@@ -68,10 +69,8 @@ static void print_quoted(gchar *str)
  *   NAT::NATDict Perl module.
  * @return the word identifier for the possible translation in that position;
  */
-guint32  natdict_dictionary_get_id(NATDict *self,
-				   gboolean language,
-				   guint32 wid,
-				   guint32 pos)
+nat_uint32_t natdict_dictionary_get_id(NATDict *self, nat_boolean_t language,
+                                       nat_uint32_t wid, nat_uint32_t pos)
 {
     /* if (language) then 'target' else 'source' fi */
     return dictionary_get_id(language?
@@ -83,7 +82,7 @@ guint32  natdict_dictionary_get_id(NATDict *self,
  * @brief Get the translation probability for a word
  *
  * @param self a reference to a NATDict object.
- * @param language a boolean identifying the language being used: 0 for 
+ * @param language a bool identifying the language being used: 0 for 
  *   the source language and 1 for the target language.
  * @param wid the id identifier of the word being searched.
  * @param pos the position(offset) on the table we are accessing. Notice
@@ -91,10 +90,8 @@ guint32  natdict_dictionary_get_id(NATDict *self,
  *   NAT::NATDict Perl module.
  * @return the translation probability for the word in the specified position;
  */
-float  natdict_dictionary_get_val(NATDict *self,
-				   gboolean language,
-				   guint32 wid,
-				   guint32 pos)
+float  natdict_dictionary_get_val(NATDict *self, nat_boolean_t language,
+                                  nat_uint32_t wid, nat_uint32_t pos)
 {
     /* if (language) then 'target' else 'source' fi */
     return dictionary_get_val(language?
@@ -109,14 +106,12 @@ float  natdict_dictionary_get_val(NATDict *self,
  * @brief Get the occurrnce count for a word (id).
  *
  * @param self a reference to a NATDict object.
- * @param language a boolean identifying the language being used: 0 for 
+ * @param language a bool identifying the language being used: 0 for 
  *   the source language and 1 for the target language.
  * @param id the id identifier of the word being searched.
  * @return the occurrence count of that word
  */
-guint32  natdict_word_count(NATDict *self,
-			    gboolean language,
-			    guint32 id)
+nat_uint32_t  natdict_word_count(NATDict *self, nat_boolean_t language, nat_uint32_t id)
 {
     /* if (language) then 'target' else 'source' fi */
     return natlexicon_count_from_id(language?
@@ -129,14 +124,12 @@ guint32  natdict_word_count(NATDict *self,
  * @brief Searches a NATDict by word id.
  *
  * @param self a reference to a NATDict object.
- * @param language a boolean identifying the language being used: 0 for 
+ * @param language a bool identifying the language being used: 0 for 
  *   the source language and 1 for the target language.
  * @param id the id identifier of the word being searched.
- * @return a reference to the word (gchar*).
+ * @return a reference to the word (wchar_t*).
  */
-gchar   *natdict_word_from_id(NATDict *self,
-			      gboolean language,
-			      guint32 id)
+wchar_t *natdict_word_from_id(NATDict *self, nat_boolean_t language, nat_uint32_t id)
 {
     /* if (language) then 'target' else 'source' fi */
     return natlexicon_word_from_id(language?
@@ -149,14 +142,12 @@ gchar   *natdict_word_from_id(NATDict *self,
  * @brief Searches a NATDict by word.
  *
  * @param self a reference to a NATDict object.
- * @param language a boolean identifying the language being used: 0 for 
+ * @param language a bool identifying the language being used: 0 for 
  *   the source language and 1 for the target language.
- * @param word a gchar* pointer to the word being searched
+ * @param word a wchar_t* pointer to the word being searched
  * @return the identifier of the word in that lexicon.
  */
-guint32  natdict_id_from_word(NATDict *self,
-			      gboolean language,
-			      const gchar *word)
+nat_uint32_t natdict_id_from_word(NATDict *self, nat_boolean_t language, const wchar_t *word)
 {
     /* if (language) then 'target' else 'source' fi */
     return natlexicon_id_from_word(language?
@@ -174,8 +165,7 @@ guint32  natdict_id_from_word(NATDict *self,
  *   language name.
  * @return the newly created object.
  */
-NATDict *natdict_new(const gchar *source_language,
-		     const gchar *target_language)
+NATDict *natdict_new(const char *source_language, const char *target_language)
 {
     NATDict *self;
 
@@ -201,11 +191,10 @@ NATDict *natdict_new(const gchar *source_language,
  *   to to save the dictionary.
  * @return 0 if the process fails, 1 otherwise.
  */
-gint32   natdict_save(NATDict     *self,
-		      const gchar *filename)
+nat_int_t natdict_save(NATDict *self, const char *filename)
 {
     FILE    *fh;
-    guint32  s;
+    nat_uint32_t  s;
 
     fh = gzopen(filename, "wb");
     if (!fh) return 0;
@@ -215,24 +204,24 @@ gint32   natdict_save(NATDict     *self,
 
     /* write source language name */
     s = strlen(self->source_language) + 1;
-    gzwrite(fh, &s, sizeof(guint32));
+    gzwrite(fh, &s, sizeof(nat_uint32_t));
     gzwrite(fh, self->source_language, s);
 
     /* write target language name */
     s = strlen(self->target_language)+1;
-    gzwrite(fh, &s, sizeof(guint32));
+    gzwrite(fh, &s, sizeof(nat_uint32_t));
     gzwrite(fh, self->target_language, s);
     
     /* source lexicon */
-    gzwrite(fh, &self->source_lexicon->words_limit, sizeof(guint32));
+    gzwrite(fh, &self->source_lexicon->words_limit, sizeof(nat_uint32_t));
     gzwrite(fh, self->source_lexicon->words, self->source_lexicon->words_limit);
-    gzwrite(fh, &self->source_lexicon->count, sizeof(guint32));
+    gzwrite(fh, &self->source_lexicon->count, sizeof(nat_uint32_t));
     gzwrite(fh, self->source_lexicon->cells, sizeof(NATCell)*self->source_lexicon->count);
 
     /* target lexicon */
-    gzwrite(fh, &self->target_lexicon->words_limit, sizeof(guint32));
+    gzwrite(fh, &self->target_lexicon->words_limit, sizeof(nat_uint32_t));
     gzwrite(fh, self->target_lexicon->words, self->target_lexicon->words_limit);
-    gzwrite(fh, &self->target_lexicon->count, sizeof(guint32));
+    gzwrite(fh, &self->target_lexicon->count, sizeof(nat_uint32_t));
     gzwrite(fh, self->target_lexicon->cells, sizeof(NATCell)*self->target_lexicon->count);
 
     /* source->target dictionary */
@@ -254,11 +243,11 @@ gint32   natdict_save(NATDict     *self,
  * @return a reference to the loaded NATDict object, or NULL
  *   if the process failed.
  */
-NATDict *natdict_open(const gchar *filename)
+NATDict *natdict_open(const char *filename)
 {
     FILE *fh;
-    gchar tmp[20], tmp2[20];
-    gint32 s;
+    char tmp[20], tmp2[20];
+    nat_int_t s;
     NATDict *self;
 
     fh = gzopen(filename, "rb");
@@ -270,9 +259,9 @@ NATDict *natdict_open(const gchar *filename)
 	return NULL;
 
     /* Read Language names */
-    gzread(fh, &s, sizeof(gint32));
+    gzread(fh, &s, sizeof(nat_int_t));
     gzread(fh,  tmp, s);
-    gzread(fh, &s, sizeof(gint32));
+    gzread(fh, &s, sizeof(nat_int_t));
     gzread(fh,  tmp2, s);
 
     self = natdict_new(tmp, tmp2);
@@ -311,7 +300,7 @@ static void natdict_perldump_(NATLexicon *source,
 			      NATLexicon *target,
 			      Dictionary *dic)
 {
-    guint32 dicsize, id, j;
+    nat_uint32_t dicsize, id, j;
     dicsize = dictionary_get_size(dic);
     for (id=0; id<dicsize; ++id) {
 	printf("\t");
@@ -362,11 +351,11 @@ NATLexicon *natdict_load_lexicon(FILE *fh)
 {
     NATLexicon *self = g_new(NATLexicon, 1);
 
-    gzread(fh, &self->words_limit, sizeof(guint32));
-    self->words = g_new(char, self->words_limit);
+    gzread(fh, &self->words_limit, sizeof(nat_uint32_t));
+    self->words = g_new(wchar_t, self->words_limit);
     gzread(fh, self->words, self->words_limit);
 
-    gzread(fh, &self->count, sizeof(guint32));
+    gzread(fh, &self->count, sizeof(nat_uint32_t));
     self->cells = g_new(NATCell, self->count);
     gzread(fh, self->cells, sizeof(NATCell)*self->count);
 
@@ -388,8 +377,8 @@ NATLexicon *natdict_load_lexicon(FILE *fh)
  */
 NATDict *natdict_add(NATDict *dic1, NATDict *dic2)
 {
-    guint32 *it_S1, *it_S2, *it_T1, *it_T2;
-    guint32 nsizeSource, nsizeTarget;
+    nat_uint32_t *it_S1, *it_S2, *it_T1, *it_T2;
+    nat_uint32_t nsizeSource, nsizeTarget;
     NATLexicon *SLex, *TLex;
     NATDict *self;
 

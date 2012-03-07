@@ -1,7 +1,7 @@
 /*
 # NATools - Package with parallel corpora tools
 # Copyright (C) 1998-2001  Djoerd Hiemstra
-# Copyright (C) 2002-2009  Alberto Simões
+# Copyright (C) 2002-2012  Alberto Simões
 #
 # This package is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -22,13 +22,10 @@
 #include <stdio.h>
 #include "invindex.h"
 
-
 /**
  * @file
  * @brief Main program to join invertion index files
  */
-
-
 
 /**
  * @brief The main function 
@@ -36,13 +33,11 @@
  * @todo Document this
  */
 int main(int argc, char *argv[]) {
-    
-
     if (argc < 3) {
 	printf("Usage...\n");
     } else {
 	InvIndex *full_index;
-	guchar chunk;
+	nat_uchar_t chunk;
 	int i;
 
 	full_index = inv_index_new(150000);

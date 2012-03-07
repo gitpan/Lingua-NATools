@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,9 +23,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 #include "matrix.h"
 #include "tempdict.h"
+
+#include <glib.h>
 
 /**
  * @file
@@ -64,7 +67,7 @@ void tempdict_freematrix2(struct cMat2 *Matrix)
  *
  * @return 0 on success
  */
-int tempdict_allocmatrix2(struct cMat2 *Matrix, guint32 Nrow, guint32 Ncolumn)
+int tempdict_allocmatrix2(struct cMat2 *Matrix, nat_uint32_t Nrow, nat_uint32_t Ncolumn)
 {
     Matrix->Nrows = Nrow;
     Matrix->Ncolumns = Ncolumn;
@@ -108,23 +111,23 @@ static int tempdict_incpointer(struct cMat2 *Matrix)
  *
  * @return ??
  */
-int tempdict_dirtyputvalue2(struct cMat2 *Matrix, float f, guint32 r, guint32 c)
+int tempdict_dirtyputvalue2(struct cMat2 *Matrix, float f, nat_uint32_t r, nat_uint32_t c)
 {
     struct cItem *I;
     I = Matrix->items + Matrix->p;
     I->row = r; I->column = c;
     I->nextC = NULL;
     if (f < MAXVAL) {
-	I->value = (guint32) (f * MAXDEC + 0.5f);
+	I->value = (nat_uint32_t) (f * MAXDEC + 0.5f);
 	return tempdict_incpointer(Matrix);
     }
     else { 
-	I->value = (guint32) (((long) (f* (float) MAXDEC + 0.5f)) % ((long) MAXVAL* (long) MAXDEC)); 
+	I->value = (nat_uint32_t) (((long) (f* (float) MAXDEC + 0.5f)) % ((long) MAXVAL* (long) MAXDEC)); 
 	if (tempdict_incpointer(Matrix)) return 1;
 	I = Matrix->items + Matrix->p;
 	I->row = r; I->column = c;
 	I->nextC = NULL;
-	I->value = (guint32) (f / (float) MAXVAL);
+	I->value = (nat_uint32_t) (f / (float) MAXVAL);
 	return tempdict_incpointer(Matrix);      
     }
 }
@@ -219,7 +222,7 @@ static void tempdict_bubblesortitems(struct cMat2 *Matrix)
 static void tempdict_setrowpointers(struct cMat2 *Matrix)
 {
     long l;
-    guint32 i;
+    nat_uint32_t i;
     l=0;
     for (i=1; i<= Matrix->Nrows; i++) {
 	while (l < Matrix->p && Matrix->items[l].row < i) l++;
@@ -233,7 +236,7 @@ static void tempdict_setrowpointers(struct cMat2 *Matrix)
 static void tempdict_setcolumnpointers(struct cMat2 *Matrix)
 {
     long l;
-    guint32 i;
+    nat_uint32_t i;
     struct cItem *I;
     for (i=1; i <= Matrix->Ncolumns; i++)
 	Matrix->firstC[i-1] = NULL;
@@ -267,7 +270,7 @@ static int tempdict_cleanmatrix2(struct cMat2 *Matrix)
 
 #if 0
 /* This is not being used, but might be useful later */
-static float GetValue2(struct cMat2 *Matrix, guint32 r, guint32 c)
+static float GetValue2(struct cMat2 *Matrix, nat_uint32_t r, nat_uint32_t c)
 {
     long i;
     float f;
@@ -307,14 +310,14 @@ static float GetValue2(struct cMat2 *Matrix, guint32 r, guint32 c)
  *
  * @return ??
  */
-float tempdict_getrowmax2(struct cMat2 *Matrix, guint32 r, guint32 *c, float *f, guint32 max)
+float tempdict_getrowmax2(struct cMat2 *Matrix, nat_uint32_t r, nat_uint32_t *c, float *f, nat_uint32_t max)
 {
-    guint32 i, j, k;
+    nat_uint32_t i, j, k;
     float fm, total;
     struct cItem *p;
 
     if (r < 1 || r > Matrix->Nrows) {
-	g_warning("tempdict: wrong row number");
+	fprintf(stderr, "tempdict: wrong row number\n");
 	return 0.0f;
     }
     if (!Matrix->clean) 
@@ -366,7 +369,7 @@ float tempdict_getrowmax2(struct cMat2 *Matrix, guint32 r, guint32 *c, float *f,
  *
  * @return ??
  */
-float tempdict_getcolumnmax2(struct cMat2 *Matrix, guint32 c, guint32 *r, float *f, guint32 max)
+float tempdict_getcolumnmax2(struct cMat2 *Matrix, nat_uint32_t c, nat_uint32_t *r, float *f, nat_uint32_t max)
 {
     long j, k;
     float fm, total;
@@ -421,8 +424,8 @@ int tempdict_loadmatrix2(struct cMat2 *Matrix, const char *filename)
 
     fd = fopen(filename, "rb");
     if (fd == NULL) return 1;
-    if (fread(&Matrix->Nrows, sizeof(guint32), 1, fd) != 1) return 2;
-    if (fread(&Matrix->Ncolumns, sizeof(guint32), 1, fd) != 1) return 3;
+    if (fread(&Matrix->Nrows, sizeof(nat_uint32_t), 1, fd) != 1) return 2;
+    if (fread(&Matrix->Ncolumns, sizeof(nat_uint32_t), 1, fd) != 1) return 3;
     if (fread(&Matrix->p, sizeof(long), 1, fd) != 1) return 4;
     Matrix->memory = Matrix->p;
     Matrix->items  = (struct cItem *)  malloc((Matrix->memory + 1) * sizeof(struct cItem));
@@ -430,7 +433,7 @@ int tempdict_loadmatrix2(struct cMat2 *Matrix, const char *filename)
     Matrix->firstC = (struct cItem **) malloc(Matrix->Ncolumns * sizeof(struct cItem *));
     if (Matrix->items == NULL || Matrix->firstR == NULL || Matrix->firstC == NULL) return 5;
     for(l=0; l<Matrix->memory; l++)
-	if (fread(&(Matrix->items[l].row), 3 * sizeof(guint32), 1, fd) != 1) return 6;
+	if (fread(&(Matrix->items[l].row), 3 * sizeof(nat_uint32_t), 1, fd) != 1) return 6;
     tempdict_setrowpointers(Matrix);
     tempdict_setcolumnpointers(Matrix);
     Matrix->clean = 1;
@@ -452,7 +455,7 @@ int tempdict_savematrix2(struct cMat2 *Matrix, const char *filename)
 {
     FILE *fd;
     long l;
-    guint32 i;
+    nat_uint32_t i;
 
     if (!Matrix->clean)
 	if (tempdict_cleanmatrix2(Matrix)) return 1;
@@ -465,7 +468,7 @@ int tempdict_savematrix2(struct cMat2 *Matrix, const char *filename)
     l = Matrix->p;
     if (fwrite(&l, sizeof(l), 1, fd) != 1) return 5;
     for (l=0; l < Matrix->p; l++)
-	if (fwrite(&(Matrix->items[l].row), 3 * sizeof(guint32), 1, fd) != 1) return 6;
+	if (fwrite(&(Matrix->items[l].row), 3 * sizeof(nat_uint32_t), 1, fd) != 1) return 6;
     if (fclose(fd)) return 7;
     return 0;
 }

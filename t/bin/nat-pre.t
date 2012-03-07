@@ -17,7 +17,7 @@ for (@prefiles) {
     unlink if -f;
 }
 
-`_build/apps/nat-pre -q -i t/bin/input/PT-tok t/bin/input/EN-tok t/PT.lex t/EN.lex t/PT.crp t/EN.crp`;
+`_build/apps/nat-pre -q -i t/input/PT-tok t/input/EN-tok t/PT.lex t/EN.lex t/PT.crp t/EN.crp`;
 
 for (@prefiles) {
   ok -f, "Checking if file $_ was correctly created";
@@ -39,7 +39,7 @@ ok(-f "t/EN.perl", "nat-lex2perl worked");
 #
 {
   my $GENERATED = {};
-  my $ORIGINAL = do "t/bin/input/PT-tok.wc";
+  my $ORIGINAL = do "t/input/PT-tok.wc";
   eval{$GENERATED = do "t/PT.perl"};
   ok(!$@, "DO done correctly");
 
@@ -55,7 +55,7 @@ ok(-f "t/EN.perl", "nat-lex2perl worked");
 #
 {
   my $GENERATED = {};
-  my $ORIGINAL = do "t/bin/input/EN-tok.wc";
+  my $ORIGINAL = do "t/input/EN-tok.wc";
   eval{$GENERATED = do "t/EN.perl"};
   ok(!$@, "DO done correctly");
 

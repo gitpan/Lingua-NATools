@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@
 #define TWO_POWER_TWENTYFOUR 16777216
 
 /** @brief list of characters used to ignore words in case of their existence */
-#define IGNORE_WORDS ",.:;!?\"+-*/\\%^()[]@#=&%_"
+#define IGNORE_WORDS L",.:;!?\"+-*/\\%^()[]@#=&%_"
 
 /** @brief the size of the cell to be used on the linked list of occurrences */
 #define CELLSIZE 50
@@ -47,11 +47,11 @@
  */
 typedef struct cInvIndexEntry {
     /** buffer where the packed occurrences are stored */
-    guint32* data;
+    nat_uint32_t* data;
     /** the size of the buffer (we normally use CELLSIZE) */
-    guint32 size;
+    nat_uint32_t size;
     /** the offset for the first free position  */
-    guint32 ptr;
+    nat_uint32_t ptr;
     /** linked list pointer for the next buffer cell  */
     struct cInvIndexEntry *next;
 } InvIndexEntry;
@@ -65,11 +65,11 @@ typedef struct cInvIndexEntry {
  */
 typedef struct cInvIndex {
     /** array size (number of words) */
-    guint32 size;
+    nat_uint32_t size;
     /** array usage */
-    guint32 lastid;
+    nat_uint32_t lastid;
     /** number of entries */
-    guint32 nrentries;
+    nat_uint32_t nrentries;
     /** array list */
     struct cInvIndexEntry **buffer;
 } InvIndex;
@@ -79,59 +79,41 @@ typedef struct cInvIndex {
  */
 typedef struct cCompactInvIndex {
     /** buffer for offsets for each word */
-    guint32 *buffer;
+    nat_uint32_t *buffer;
     /** number of words (also, size of buffer) */
-    guint32 nrwords;
+    nat_uint32_t nrwords;
     /** buffer for occurrences (size is nrwords + nrentries) */
-    guint32 *entry;
+    nat_uint32_t *entry;
     /** number of occurrences  */
-    guint32 nrentries;
+    nat_uint32_t nrentries;
 } CompactInvIndex;
 
 InvIndex*        inv_index_new(
-                         guint32 original_size);
+                         nat_uint32_t original_size);
 
 InvIndex*        inv_index_add_occurrence(
                          InvIndex *index,
-			 guint32 wid,
-			 guchar  chunk,
-			 guint32 sentence);
+			 nat_uint32_t wid,
+			 nat_uchar_t  chunk,
+			 nat_uint32_t sentence);
 
-int              inv_index_save_hash(
-                         InvIndex *index,
-			 const gchar *filename,
-			 gboolean quiet);
+int inv_index_save_hash(InvIndex *index, const char *filename, nat_boolean_t quiet);
 
 void             inv_index_free(
                          InvIndex *index);
 
 CompactInvIndex *inv_index_compact_new(
-                         guint32 nrwords,
-			 guint32 nrentries);
+                         nat_uint32_t nrwords,
+			 nat_uint32_t nrentries);
 
-CompactInvIndex *inv_index_compact_load(
-                         const char* filename);
+CompactInvIndex *inv_index_compact_load(const char* filename);
+InvIndex*       inv_index_add_chunk(InvIndex *index, nat_uchar_t chunk, CompactInvIndex *cii);
+void            inv_index_compact_free(CompactInvIndex *cii);
+nat_uint32_t*   inv_index_compact_get_occurrences(CompactInvIndex *index, nat_uint32_t wid);
+nat_uint32_t    unpack( nat_uint32_t packed, nat_uchar_t *character);
+nat_uint32_t    pack(nat_uint32_t integer, nat_uchar_t character);
+nat_uint32_t*   intersect(nat_uint32_t *self, nat_uint32_t *other);
 
-InvIndex*        inv_index_add_chunk(
-                         InvIndex *index,
-			 guchar chunk,
-			 CompactInvIndex *cii);
-
-void             inv_index_compact_free(
-                         CompactInvIndex *cii);
-
-guint32*         inv_index_compact_get_occurrences(
-                         CompactInvIndex *index,
-			 guint32          wid);
-
-guint32          unpack( guint32          packed,
-			 guchar          *character);
-
-guint32          pack(   guint32          integer,
-			 guchar           character);
-
-guint32* intersect(guint32 *self, guint32 *other);
-
-/* size_t inv_index_buffer_size(guint32 *buffer); */
+/* size_t inv_index_buffer_size(nat_uint32_t *buffer); */
 
 #endif /* __INVINDEX_H__ */

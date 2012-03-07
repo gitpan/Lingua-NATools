@@ -22,22 +22,19 @@
 
 
 #include <stdio.h>
-#include <ctype.h>
-#include <locale.h>
+#include <wctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
-#include <glib.h>
+#include <wchar.h>
+#include <NATools.h>
 
 #include "standard.h"
-#include "words.h"
 #include "invindex.h"
-#include "corpus.h"
-#include "isolatin.h"
-#include "config.h"
+#include "unicode.h"
 #include "partials.h"
 #include "ngramidx.h"
+
 
 /**
  * @file
@@ -60,13 +57,13 @@
  */
 #define DEFAULT_INDEX_SIZE 150000
 
-static gboolean quiet;
+static nat_boolean_t quiet;
 
-static char *my_lowercase(char *sen, gboolean ignore_case) {
+static wchar_t *my_lowercase(wchar_t *sen, nat_boolean_t ignore_case) {
     if (ignore_case) {
-        char *ptr = sen;
+        wchar_t *ptr = sen;
         while(*ptr) {
-            *ptr = tolower((unsigned char)*ptr);
+            *ptr = towlower(*ptr);
             ptr++;
         }
     }
@@ -74,24 +71,22 @@ static char *my_lowercase(char *sen, gboolean ignore_case) {
 }
 
 void show_help(void) {
-    printf("Usage: nat-pre [-uiq] cp1 cp2 lex1 lex2 crp1 crp2\n");
+    printf("Usage: nat-pre [-iq] cp1 cp2 lex1 lex2 crp1 crp2\n");
     printf("Supported options:\n"
            "  -h shows this help message and exits\n"
            "  -V shows "PACKAGE" version and exits\n"
            "  -v activates verbose mode (incompatible with quiet mode)\n"
-           "  -u activates unicode\n"
-           "  -i activates ignore case (no unicode support)\n"
+           "  -i activates ignore case\n"
            "  -q activates quiet mode\n"
            "Check nat-pre manpage for details.\n");
 }
 
-static int AddSentence(char **sen, unsigned long len,
-		       WordList* wl, Corpus *Corpus,
-		       InvIndex *Index, guint32 sentence_number,
-		       PartialCounts *partials, SQLite *bidx,
-                       gboolean ignore_case, gboolean utf8)
+static int AddSentence(wchar_t **sen, unsigned long len,
+		       Words* wl, Corpus *Corpus,
+		       InvIndex *Index, nat_uint32_t sentence_number,
+		       PartialCounts *partials, nat_boolean_t ignore_case)
 {
-    guint32 i, wid = 0;
+    nat_uint32_t i, wid = 0;
     
     /* Add each sentence word */
     for (i = 0; i < len; i++) {
@@ -101,34 +96,23 @@ static int AddSentence(char **sen, unsigned long len,
 	else if (isUPPERCASE(*sen)) flag = 3;
 	else flag = 1;
         
-	if (strlen(*sen) >= MAXWORDLEN) {
-	    g_warning("Truncating word '%s'", *sen);
-            if (utf8) {
-                /* FIX ME */
-                int i = 1;
-                char c;
-
-                /* ( c & mask c/ os 2 bits interessantes = 1 ) igual? ( valor q interessa ) */
-                while (((*sen)[MAXWORDLEN-i] & 0xC0) == 0x80)
-                    i--;
-                (*sen)[MAXWORDLEN - i]='\0';
-            } else {
-                (*sen)[MAXWORDLEN - 1]='\0';
-            }
+	if (wcslen(*sen) >= MAXWORDLEN) {
+	    fprintf(stderr, "**WARNING** Truncating word '%ls'\n", *sen);
+            (*sen)[MAXWORDLEN - 1]='\0';
 	}
-        wid = word_list_add_word(wl, my_lowercase(*sen, ignore_case));
 
+        wid = words_add_word(wl, my_lowercase(*sen, ignore_case));
 
         if (wid) {
             partials = PartialCountsAdd(partials, wid);
 		
             if (corpus_add_word(Corpus, wid, flag)) return 1;
 		
-            if (!strspn(*sen, IGNORE_WORDS)) {
+            if (!wcsspn(*sen, IGNORE_WORDS)) {
                 Index = inv_index_add_occurrence(Index, wid, 0, sentence_number);
             }
         } else {
-            g_warning("pre.c: received an empty word id.\n");
+            fprintf(stderr, "pre.c: received an empty word id.\n");
             return 2;
         }
 	sen++;
@@ -139,22 +123,21 @@ static int AddSentence(char **sen, unsigned long len,
 	/* Add sentence delimiter (0) */
 	if (corpus_add_word(Corpus, 0, 1)) return 3;
     } else {
-        g_warning("ERROR: empty string\n");
+        fprintf(stderr, "ERROR: empty string\n");
         return 4;
     }
     return 0;
 }
 
-static int AnalyseCorpus(Corpus *C1, WordList* wl1, InvIndex* Index1, char *text1, 
-			 Corpus *C2, WordList* wl2, InvIndex* Index2, char *text2,
-			 guint32 *Nw1, guint32 *Nw2, guint32 *Nsen,
-			 guint32 *TotNw1, guint32 *TotNw2, guint32 *TotNsen,
+static int AnalyseCorpus(Corpus *C1, Words* wl1, InvIndex* Index1, wchar_t *text1, 
+			 Corpus *C2, Words* wl2, InvIndex* Index2, wchar_t *text2,
+			 nat_uint32_t *Nw1, nat_uint32_t *Nw2, nat_uint32_t *Nsen,
+			 nat_uint32_t *TotNw1, nat_uint32_t *TotNw2, nat_uint32_t *TotNsen,
 			 PartialCounts *partials1, PartialCounts *partials2,
-                         SQLite *srcBidx, SQLite *tgtBidx,
-                         gboolean ignore_case, gboolean utf8)
+                         nat_boolean_t ignore_case)
 {
     unsigned long len1, len2;
-    char *sen1[MAXBUF], *sen2[MAXBUF];
+    wchar_t *sen1[MAXBUF], *sen2[MAXBUF];
     
     if (!quiet) {
 	fprintf(stderr, "\n Sentences\tWords cp1\tWords cp2\n");
@@ -178,17 +161,17 @@ static int AnalyseCorpus(Corpus *C1, WordList* wl1, InvIndex* Index1, char *text
 		(*Nw1) += len1;
 		(*Nw2) += len2;
 		if (AddSentence(sen1, len1, wl1, C1, Index1,
-                                *Nsen, partials1, srcBidx, ignore_case, utf8))
+                                *Nsen, partials1, ignore_case))
                     return 1;
 		if (AddSentence(sen2, len2, wl2, C2, Index2,
-                                *Nsen, partials2, tgtBidx, ignore_case, utf8))
+                                *Nsen, partials2, ignore_case))
                     return 1;
 	    } else {
 		fprintf(stderr, "\n** WARNING: sentence too big: max(%ld,%ld)>%d\n",
                         len1, len2,MAXBUF);
 		/* 
-		   fprintf(stderr, "**          s1: %s\n", *sen1);
-		   fprintf(stderr, "**          s2: %s\n", *sen2);
+		   fprintf(stderr, "**          s1: %ls\n", *sen1);
+		   fprintf(stderr, "**          s2: %ls\n", *sen2);
 		*/
 	    }
 	}
@@ -209,24 +192,20 @@ static int AnalyseCorpus(Corpus *C1, WordList* wl1, InvIndex* Index1, char *text
  */
 int main(int argc, char **argv)
 {
-    WordList *wordLst1, *wordLst2;
+    Words *wordLst1, *wordLst2;
     Corpus *Corpus1, *Corpus2;
     InvIndex *Index1, *Index2;
-    gchar *indexfile;
+    char *indexfile;
 
-    SQLite *srcBidx = NULL;
-    SQLite *tgtBidx = NULL;
+    wchar_t *text1, *text2;
 
-    char *text1, *text2;
+    nat_boolean_t verbose     = FALSE;
+    nat_boolean_t ignore_case = FALSE;
 
-    gboolean verbose     = FALSE;
-    gboolean ignore_case = FALSE;
-    gboolean utf8        = FALSE;
-
-    guint32 Nw1, Nw2, Nsen;
-    guint32 TotNw1, TotNw2, TotNsen;
-    guint32 UNw1, UNw2, UNsen;
-    guint32 TotUNw1, TotUNw2;
+    nat_uint32_t Nw1, Nw2, Nsen;
+    nat_uint32_t TotNw1, TotNw2, TotNsen;
+    nat_uint32_t UNw1, UNw2, UNsen;
+    nat_uint32_t TotUNw1, TotUNw2;
     int result;
 
     PartialCounts partials1, partials2;
@@ -235,9 +214,11 @@ int main(int argc, char **argv)
     extern int optind;
     int c;
 
+    init_locale();
+
     quiet = FALSE;
 
-    while ((c = getopt(argc, argv, "hvqiuV")) != EOF) {
+    while ((c = getopt(argc, argv, "hvqiV")) != EOF) {
 	switch (c) {
         case 'h':
             show_help();
@@ -247,9 +228,6 @@ int main(int argc, char **argv)
             return 0;
         case 'i':
             ignore_case = TRUE;
-            break;
-        case 'u':
-            utf8 = TRUE;
             break;
 	case 'v':
 	    verbose = TRUE;
@@ -262,12 +240,6 @@ int main(int argc, char **argv)
             return 1;
 	}
     }
-
-    if (utf8 && ignore_case)
-        ignore_case = FALSE;
-
-    if (ignore_case)
-        setlocale(LC_CTYPE,"pt_PT.ISO8859-1");
 
     if (quiet && verbose) {
 	fprintf(stderr, "Quiet and verbose can't work together\n");
@@ -282,26 +254,27 @@ int main(int argc, char **argv)
 
     if (verbose) {
 	printf("\nMaximum sentence length: %d words\n", MAXLEN); 
-	printf("Delimiters:     Sentence: '%c'      Paragraph: '%c'\n", SOFTDELIMITER, HARDDELIMITER);
+	printf("Sentence delimiter: '%c'\tParagraph delimiter: '%c'\n",
+               SOFTDELIMITER, HARDDELIMITER);
     }
 
 
     /* 
      *  INITIALIZE/OPEN LEXICON
      */
-    wordLst1 = word_list_load(argv[optind + 2], NULL);
+    wordLst1 = words_quick_load(argv[optind + 2]);
     if (!wordLst1) {
 	if (!quiet)
 	    fprintf(stderr, " Source wordlist does not exist. Creating a new one\n");
-	wordLst1 = word_list_new();
+	wordLst1 = words_new();
 	if (!wordLst1) report_error("Not enough memory!");
     }
 
-    wordLst2 = word_list_load(argv[optind + 3], NULL);
+    wordLst2 = words_quick_load(argv[optind + 3]);
     if (!wordLst2) {
 	if (!quiet)
 	    fprintf(stderr, " Target wordlist does not exist. Creating a new one\n");
-	wordLst2 = word_list_new();
+	wordLst2 = words_new();
 	if (!wordLst2) report_error("Not enough memory!");
     }
     
@@ -321,11 +294,11 @@ int main(int argc, char **argv)
      * INITIALIZE PARTIAL OCCURRENCES COUNT
      */
     partials1.size   = DEFAULT_INDEX_SIZE;
-    partials1.buffer = g_new0(guint32, partials1.size);
+    partials1.buffer = g_new0(nat_uint32_t, partials1.size);
     partials1.last   = 0;
 
     partials2.size   = DEFAULT_INDEX_SIZE;
-    partials2.buffer = g_new0(guint32, partials2.size);
+    partials2.buffer = g_new0(nat_uint32_t, partials2.size);
     partials2.last   = 0;
 
     /* 
@@ -346,7 +319,7 @@ int main(int argc, char **argv)
     text2 = ReadText(argv[optind + 1]);
 
     if (text1 == NULL || text2 == NULL)
-	report_error("ReadText: %s %s",argv[optind],argv[optind+1]);
+	report_error("ReadText: %s %s", argv[optind], argv[optind+1]);
 
     Nw1 = 0; UNw1 = 0;
     Nw2 = 0; UNw2 = 0;
@@ -356,8 +329,7 @@ int main(int argc, char **argv)
     result = AnalyseCorpus(Corpus1, wordLst1, Index1, text1,
 			   Corpus2, wordLst2, Index2, text2,
 			   &UNw1, &UNw2, &UNsen, &Nw1, &Nw2, &Nsen,
-			   &partials1, &partials2,
-                           srcBidx, tgtBidx, ignore_case, utf8);
+			   &partials1, &partials2, ignore_case);
 
     TotUNw1 += UNw1;
     TotUNw2 += UNw2;
@@ -376,30 +348,25 @@ int main(int argc, char **argv)
 	printf("\nTotal corpus 1:\n");
 	printf(" %d words\n", (int) TotNw1);
 	printf(" %d words used\n", (int) TotUNw1);
-	printf(" %d different words\n",word_list_size(wordLst1));
+	printf(" %d different words\n",words_size(wordLst1));
 
 	printf("\nTotal corpus 2:\n");
 	printf(" %d words\n", (int) TotNw2);
 	printf(" %d words used\n", (int) TotUNw2);
-	printf(" %d different words\n",word_list_size(wordLst2));
+	printf(" %d different words\n",words_size(wordLst2));
     }
 
-    if (verbose) { printf ("Checking corpus sizes\n"); }
+    if (verbose) printf ("Checking corpus sizes\n");
     Nw1 = corpus_sentences_nr(Corpus1);
     Nw2 = corpus_sentences_nr(Corpus2);
-    if (Nw1 != Nw2)
-	report_error("Corpus lengths didn't pass final test");
 
-    if (Nw1 == 0) {
-	fprintf(stderr,"No sentences found\n");
-	return 1;
-    }
-
+    if (Nw1 != Nw2) report_error("Corpus lengths didn't pass final test");
+    if (Nw1 == 0)   report_error("No sentences found\n");
 
     /* Save LEXICONS */
     if (verbose) printf ("Saving lexicon files\n");
-    if (word_list_save(wordLst1, argv[optind + 2]) != TRUE) report_error("SaveWords 1");
-    if (word_list_save(wordLst2, argv[optind + 3]) != TRUE) report_error("SaveWords 2");
+    if (words_save(wordLst1, argv[optind + 2]) != TRUE) report_error("SaveWords 1");
+    if (words_save(wordLst2, argv[optind + 3]) != TRUE) report_error("SaveWords 2");
 
     /* Save CORPORA */
     if (verbose) printf ("Saving corpora files\n");
@@ -426,8 +393,8 @@ int main(int argc, char **argv)
     g_free(indexfile);
 
     /* Free Structures */
-    word_list_free(wordLst1);
-    word_list_free(wordLst2);
+    words_free(wordLst1);
+    words_free(wordLst2);
 
     free(text1);
     free(text2);

@@ -7,7 +7,7 @@ use Lingua::NATools::Lexicon;
 
 use DBI;
 
-our ($sqlite, $self, $full, $h, $v, $utf8);
+our ($sqlite, $self, $full, $h, $v);
 
 sub debug { print STDERR @_, "\n" if $v }
 
@@ -80,10 +80,10 @@ if ($sqlite) {
 }
 else {
     debug "Dumping source-target dictionary.";
-    dump_dictionary("source-target", $ST, $LA, $LB, $utf8);
+    dump_dictionary("source-target", $ST, $LA, $LB);
 
     debug "Dumping target-source dictionary.";
-    dump_dictionary("target-source", $TS, $LB, $LA, $utf8);
+    dump_dictionary("target-source", $TS, $LB, $LA);
 }
 
 debug "Closing lexicon files";
@@ -97,20 +97,21 @@ $TS->close;
 
 
 sub dump_dictionary {
-    my ($name, $id, $LA, $LB, $utf8) = @_;
+    my ($name, $id, $LA, $LB) = @_;
 
     if ($self) {
-        open X, ">", "$crpDir/$name.dmp" or die "Can't create file: $!";
-        binmode X;
+        open X, ">:utf8", "$crpDir/$name.dmp" or die "Can't create file: $!";
         select X;
     }
     elsif ($crpDir) {
-        open X, ">", "$name.dmp" or die "Can't create file: $!";
-        binmode X;
+        open X, ">:utf8", "$name.dmp" or die "Can't create file: $!";
         select X;
     }
+    else {
+        binmode STDOUT, ":utf8";
+    }
 
-    print "use utf8;\n" if $utf8;
+    print "use utf8;\n";
 
     my $n = ($name eq "source-target")?1:2;
     print "\$DIC$n = {\n";

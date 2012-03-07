@@ -1,7 +1,7 @@
 /* -*- Mode: C -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2011  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,8 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#include <wchar.h>
+
 #include "dictionary.c"
 #include "words.c"
 #include "natdict.c"
@@ -35,17 +37,13 @@
 #include "standard.c"
 #include "srvshared.c"
 #include "ngramidx.c"
-
+#include "unicode.c"
 
 #define MAXDICS 10
 
 NATDict      *natdics[MAXDICS];
-
 Dictionary   *dics[MAXDICS];
-
-WordList     *wls[MAXDICS];
-WordLstNode **wln[MAXDICS];
-
+Words        *wls[MAXDICS];
 Corpus       *corpus[MAXDICS];
 
 CorpusInfo   *crp;
@@ -56,12 +54,72 @@ int first_empty_wl = 0;
 int first_empty_corpus = 0;
 int inited = 0;
 
+wchar_t*
+SvToWChar(SV* arg)
+{
+    wchar_t* ret;
+    // Get string length of argument. This works for PV, NV and IV.
+    // The STRLEN typdef is needed to ensure that this will work correctly
+    // in a 64-bit environment.
+    STRLEN arg_len;
+    SvPV(arg, arg_len);
+
+    // Alloc memory for wide char string.  This could be a bit more
+    // then necessary.
+    Newz(0, ret, arg_len + 1, wchar_t);
+
+    U8* src = (U8*) SvPV_nolen(arg);
+    wchar_t* dst = ret;
+
+    if (SvUTF8(arg)) {
+        // UTF8 to wide char mapping
+        STRLEN len;
+        while (*src) {
+            *dst++ = utf8_to_uvuni(src, &len);
+            src += len;
+        }
+    } else {
+        // char to wide char mapping
+        while (*src) {
+            *dst++ = (wchar_t) *src++;
+        }
+    }
+    *dst = 0;
+    return ret;
+}
+
+SV*
+WCharToSv(wchar_t* src, SV* dest)
+{
+    U8* dst;
+    U8* d;
+
+    // Alloc memory for wide char string.  This is clearly wider
+    // then necessary in most cases but no choice.
+    Newz(0, dst, 3 * wcslen(src) + 1, U8);
+
+    d = dst;
+    while (*src) {
+        d = uvuni_to_utf8(d, *src++);
+    }
+    *d = 0;
+
+    sv_setpv(dest, (char*) dst);
+    sv_utf8_decode(dest);
+
+    Safefree(dst);
+    return dest;
+}
+
+
 void init(void) {
     int i;
+
+    init_locale();
+
     for (i = 0; i < MAXDICS; i++) {
 	dics[i] = NULL;
 	wls[i] = NULL;
-	wln[i] = NULL;
 	natdics[i] = NULL;
 	corpus[i] = NULL;
     }
@@ -181,7 +239,7 @@ dicgetvals(id, word)
 	     XSRETURN_UNDEF;
          } else {
 	     int i;
-	     guint32 wid;
+	     U32 wid;
 	     float val;
 	     array = newAV();
 	     for (i=0;i<MAXENTRY;i++) {
@@ -346,7 +404,7 @@ wlopen(filename)
 	    croak("Maximum number of wordlist opened");
 	    RETVAL = -1;
         } else {
-            wls[first_empty_wl] = word_list_load(filename, &wln[first_empty_wl]);
+            wls[first_empty_wl] = words_load(filename);
             while(first_empty_wl < MAXDICS) {
               if (!wls[first_empty_wl]) break;
               first_empty_wl++;
@@ -363,25 +421,23 @@ wlclose(id)
          int id
    CODE:
          if (id > MAXDICS || id < 0) return;
-         if (wls[id]) word_list_free(wls[id]);
-         free(wln[id]);
+         if (wls[id]) words_free(wls[id]);
          wls[id] = NULL;
-         wln[id] = NULL;
          if (id < first_empty_wl) first_empty_wl = id;
 
 
-char*
+wchar_t*
 wlgetbyid(id, word)
          int id
          U32 word
    INIT:
-         char* str;
+         wchar_t* str;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
-	     str = g_strdup("");
+         if (id > MAXDICS || id < 0 || !wls[id]) {
+	     str = wcsdup(L"");
          } else {
-	     str = word_list_get_by_id(wln[id], word);
-	     if (!str) str = g_strdup("(none)");
+	     str = words_get_by_id(wls[id], word);
+	     if (!str) str = wcsdup(L"(none)");
 	 }
          RETVAL = str;
           /*   CLEANUP: free(str);  */ /* or similar call to free the memory */
@@ -396,10 +452,10 @@ wlenlarge(id, extracells)
     INIT:    
 	 int retval;
     CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
 	     retval = 1;
          } else {
-	     wln[id] = word_list_enlarge(wls[id], wln[id], extracells);
+	     wls[id] = words_enlarge(wls[id], extracells);
 	     retval = 0;
 	 }
          RETVAL = retval;
@@ -409,14 +465,14 @@ wlenlarge(id, extracells)
 U32
 wladdword(id, word)
          int id
-         char *word
+         wchar_t *word
    INIT:
          U32 wid;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
 	     wid = 0;
          } else {
-	     wid = word_list_add_word_and_index(wls[id], wln[id], g_strdup(word));
+	     wid = words_add_word_and_index(wls[id], wcsdup(word));
 	 }
          RETVAL = wid;
    OUTPUT:
@@ -426,14 +482,14 @@ wladdword(id, word)
 U32
 wlgetbyword(id, word)
          int id
-         char *word
+         wchar_t *word
    INIT:
          U32 wid;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
 	     wid = 0;
          } else {
-	     wid = word_list_get_id(wls[id], word);
+	     wid = words_get_id(wls[id], word);
 	 }
          RETVAL = wid;
    OUTPUT:
@@ -447,10 +503,10 @@ wlsave(id, filename)
          int retval;
    CODE:
          retval = 1;
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
              retval = 0;
          } else {
-	     word_list_save(wls[id], filename);
+	     words_save(wls[id], filename);
          }
          RETVAL = retval;
    OUTPUT:
@@ -463,10 +519,10 @@ wlgetsize(id)
    INIT:
          U32 size;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
 	     size = 0;
          } else {
-	     size = word_list_size(wls[id]);
+	     size = words_size(wls[id]);
 	 }
          RETVAL = size;
    OUTPUT:
@@ -479,11 +535,10 @@ wloccs(id)
    INIT:
          U32 size;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id])
 	     size = 0;
-         } else {
-	     size = word_list_occurrences(wls[id]);
-	 }
+         else
+	     size = words_occurrences(wls[id]);
          RETVAL = size;
    OUTPUT:
          RETVAL
@@ -496,11 +551,10 @@ wlcountbyid(id, wid)
    INIT:
          U32 size;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id])
 	     size = 0;
-         } else {
-	     size = word_list_get_count_by_id(wln[id], wid);
-	 }
+         else
+	     size = words_get_count_by_id(wls[id], wid);
          RETVAL = size;
    OUTPUT:
          RETVAL
@@ -513,10 +567,10 @@ wlsetcountbyid(id, wid, count)
    INIT:
          U32 retval;
    CODE:
-         if (id > MAXDICS || id < 0 || !wln[id]) {
+         if (id > MAXDICS || id < 0 || !wls[id]) {
 	     retval = 0;
          } else {
-	     retval = word_list_set_count_by_id(wls[id], wln[id], wid, count);
+	     retval = words_set_count_by_id(wls[id], wid, count);
 	 }
          RETVAL = retval;
    OUTPUT:
@@ -578,7 +632,7 @@ nat_dict_target_lang(id)
          RETVAL
 
 
-char*
+wchar_t*
 nat_dict_word_from_id(id, lang, wid)
         int id
         int lang
@@ -595,7 +649,7 @@ U32
 nat_dict_id_from_word(id, lang, wid)
         int id
         int lang
-        char* wid
+        wchar_t* wid
    CODE:
          if (id > MAXDICS || id < 0) RETVAL = 0;
          else if (!natdics[id]) RETVAL = 0;
@@ -655,8 +709,8 @@ nat_dict_getvals(id, lang, word)
          if (id > MAXDICS || id < 0 || !natdics[id]) {
 	     XSRETURN_UNDEF;
          } else {
-	     guint32 i;
-	     guint32 wid;
+	     U32 i;
+	     U32 wid;
 	     float val;
 	     array = newAV();
 	     for (i=0;i<MAXENTRY;i++) {
@@ -726,7 +780,7 @@ corpus_first_sentence_xs(id)
         if (id > MAXDICS || id < 0 || !corpus[id]) {
 	    XSRETURN_UNDEF;
 	} else {
-	    guint32 wid;
+	    U32 wid;
 	    CorpusCell *w;
 	    
 	    array = newAV();
@@ -751,7 +805,7 @@ corpus_next_sentence_xs(id)
         if (id > MAXDICS || id < 0 || !corpus[id]) {
 	    XSRETURN_UNDEF;
 	} else {
-	    guint32 wid;
+	    U32 wid;
 	    CorpusCell *w;
 
 	    array = newAV();
@@ -805,30 +859,30 @@ U32
 corpus_info_lexicon_size(dir)
         int dir
     INIT:
-	WordList *lexicon;
+	Words *lexicon;
     CODE:
 	if (!crp) {
 	    XSRETURN_UNDEF;
 	}
         lexicon = (dir > 0)?crp->SourceLex:crp->TargetLex;
-        RETVAL = word_list_size(lexicon);
+        RETVAL = words_size(lexicon);
     OUTPUT:
         RETVAL
 
 
-char*
+wchar_t*
 corpus_info_word_from_wid(dir, wid)
         int dir
 	U32 wid
     INIT:
-	WordLstNode **lexicon;
-	char *w;
+	Words *lexicon;
+	wchar_t *w;
     CODE:
 	if (!crp) {
 	    XSRETURN_UNDEF;
 	}
-        lexicon = (dir > 0)?crp->SourceLexIds:crp->TargetLexIds;
-        w = word_list_get_by_id(lexicon, wid);
+        lexicon = (dir > 0)?crp->SourceLex:crp->TargetLex;
+        w = words_get_by_id(lexicon, wid);
         RETVAL = w;
     OUTPUT:
         RETVAL
@@ -837,31 +891,30 @@ corpus_info_word_from_wid(dir, wid)
 SV*
 corpus_info_ptd_by_word(dir, word)
         int dir
-        char *word
+        wchar_t *word
     INIT:
-        WordList *S;
-        WordLstNode **T;
+        Words *S, *T;
         Dictionary *D;
-        guint32 wid, twid;
+        U32 wid, twid;
 	AV* array;
 	float prob;
         int j;
-	char *tword;
+	wchar_t *tword;
     CODE:
         if (!crp) {
 	    XSRETURN_UNDEF;
 	}
         if (dir > 0) {
 	    S = crp->SourceLex;
-	    T = crp->TargetLexIds;
+	    T = crp->TargetLex;
 	    D = crp->SourceTarget;
 	} else {
 	    S = crp->TargetLex;
-	    T = crp->SourceLexIds;
+	    T = crp->SourceLex;
 	    D = crp->TargetSource;
 	}
 
-        wid = word_list_get_id(S, word);
+        wid = words_get_id(S, word);
         if (!wid) {
 	    XSRETURN_UNDEF;
 	}
@@ -874,10 +927,12 @@ corpus_info_ptd_by_word(dir, word)
 	    prob = 0.0;
 	    twid = dictionary_get_id(D, wid, j);
 	    if (twid) {
+                SV* sv_tword;
 		prob = dictionary_get_val(D, wid, j);
-		tword = word_list_get_by_id(T, twid);
+		tword = words_get_by_id(T, twid);
                 if (!tword) { fprintf(stderr, "Id: %d\n", twid); }
-		av_push(array, newSVpvn(tword, strlen(tword)));
+                WCharToSv(tword, sv_tword);
+		av_push(array, sv_tword);
 		av_push(array, newSVnv((double)prob));
 	    }
 	}
@@ -893,27 +948,28 @@ corpus_info_conc_by_str(direction, both, exact_match, words_str)
         int direction
         int both
         int exact_match
-        char *words_str
+        wchar_t *words_str
     INIT:
 	int i;
 	AV* array;
 	AV* triple;
-	char words[50][150];
-        char *token = NULL;
+        wchar_t *ptr;
+	wchar_t words[50][150];
+        wchar_t *token = NULL;
         GSList *list, *iterator = NULL;
     CODE:
         if (!crp) {
 	    XSRETURN_UNDEF;
 	}
 
-        for (i=0;i<50;i++) strcpy(words[i],"");
+        for (i=0;i<50;i++) wcscpy(words[i], L"");
         i = 0;
 
-        token = strtok(words_str, " ");
+        token = wcstok(words_str, L" ", &ptr);
         while(token) {
-	    strcpy(words[i], token);
+	    wcscpy(words[i], token);
 	    i++;
-	    token = strtok(NULL, " ");
+	    token = wcstok(NULL, L" ", &ptr);
 	}
 
         list = dump_conc(0, crp, direction, both, exact_match, words, i);
@@ -924,8 +980,9 @@ corpus_info_conc_by_str(direction, both, exact_match, words_str)
 	    triple = newAV();
 	    
 	    if (tu->quality >= 0.0) av_push(triple, newSVnv(tu->quality));
-	    av_push(triple, newSVpvn(tu->source, strlen(tu->source)));
-	    av_push(triple, newSVpvn(tu->target, strlen(tu->target)));
+
+            av_push(triple, newSVpvn(tu->source, strlen(tu->source)));
+            av_push(triple, newSVpvn(tu->target, strlen(tu->target)));
 	    av_push(array, newRV_noinc((SV*)triple));
 	    destroy_TU(tu);
 	}
@@ -939,27 +996,28 @@ corpus_info_conc_by_str(direction, both, exact_match, words_str)
 SV*
 corpus_info_ngrams_by_str(direction, query)
         int direction
-        char *query
+        wchar_t *query
     INIT:
         int i;
         AV* array;
         AV* gram;
-	char words[50][150];
-        char *token = NULL;
+        wchar_t *ptr;
+	wchar_t words[50][150];
+        wchar_t *token = NULL;
         GSList *list, *iterator = NULL, *siterator = NULL;
     CODE:
         if (!crp) {
             XSRETURN_UNDEF;
         }
        
-        for (i=0;i<50;i++) strcpy(words[i],"");
+        for (i=0;i<50;i++) wcscpy(words[i], L"");
         i = 0;
 
-        token = strtok(query, " ");
+        token = wcstok(query, L" ", &ptr);
         while(token) {
-	    strcpy(words[i], token);
+	    wcscpy(words[i], token);
 	    i++;
-	    token = strtok(NULL, " ");
+	    token = wcstok(NULL, L" ", &ptr);
 	}
 
         list = dump_ngrams(0, crp, direction, words, i);

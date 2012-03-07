@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,12 +26,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
-#include <glib.h>
+
+#include <EXTERN.h>
+#include <perl.h>
 
 
-#include "words.h"
+#include <NATools/words.h>
 #include "invindex.h"
-#include "corpus.h"
 #include "corpusinfo.h"
 #include "dictionary.h"
 
@@ -39,32 +40,27 @@
 #define DONE(fd)	write(fd, "** DONE **\n", 11)
 #define ERROR(fd)       write(fd, "** SYNTAX ERROR **\n", 19)
 
-/* -----------------------------------------------------------------------
-   -----------------------------------------------------------------------
-   ----------------------------------------------------------------------- */
-
 
 typedef struct _tu {
-    gchar *source;
-    gchar *target;
+    char *source;
+    char *target;
     double quality;
 } TU;
 
 int send_TU(int sd, TU* tu);
 void destroy_TU(TU* tu);
-char *convert_sentence(WordLstNode **W, CorpusCell *sentence);
-TU* create_TU(CorpusInfo *corpus, double q,
-	      CorpusCell *source, CorpusCell *target);
+char *convert_sentence(Words *W, CorpusCell *sentence);
+TU* create_TU(CorpusInfo *corpus, double q, CorpusCell *source, CorpusCell *target);
 GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
-		  gboolean both, gboolean exact_match,
-		  char words[50][150], int i);
+		  nat_boolean_t both, nat_boolean_t exact_match,
+		  wchar_t words[50][150], int i);
 GSList* dump_ngrams(int fd, CorpusInfo *corpus, int direction,
-                    char words[50][150], int n);
+                    wchar_t words[50][150], int n);
 CorpusCell *corpus_retrieve_sentence(CorpusInfo* corpus,
-				     gboolean source,
-				     const guchar chunk,
-				     guint32 sentence,
+				     nat_boolean_t source,
+				     const nat_uchar_t chunk,
+				     nat_uint32_t sentence,
 				     double *kwalitee);
 
-double* rank_load(CorpusInfo *corpus, const char* file, const guint32 size);
+double* rank_load(CorpusInfo *corpus, const char* file, const nat_uint32_t size);
 #endif

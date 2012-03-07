@@ -26,7 +26,7 @@ use XML::TMX::Reader;
 use Lingua::PT::PLNbase;
 use Lingua::Identify qw/:all/;
 
-our $VERSION = '0.6.4';
+our $VERSION = '0.7.0_01';
 our $DEBUG = 0;
 
 use parent 'DynaLoader';
@@ -34,6 +34,10 @@ bootstrap Lingua::NATools $VERSION;
 
 my $BINPREFIX = Lingua::NATools::ConfigData->config('bindir');
 my $LIBPREFIX = Lingua::NATools::ConfigData->config('libdir');
+
+sub DEBUG {
+    $DEBUG && print STDERR join(" ",@_),"\n"
+}
 
 sub homedir {
     my $self = shift;
@@ -47,7 +51,7 @@ sub init {
     my ($dir, $name, @langs) = @_;
 
     my $homedir = $name;
-    $homedir = catfile $dir, $name unless name_is_absolute($name);
+    $homedir = catfile $dir, $name unless file_name_is_absolute($name);
 
     die "Can not delete existing '$homedir'\n"  unless !-d $homedir || remove_tree($homedir);
     die "Can'not create directory '$homedir'\n" unless make_path($homedir);
@@ -103,7 +107,6 @@ sub _new_logger {
 sub codify {
     my ($self, $ops, $txt1, $txt2) = @_;
     my $LOG = _new_logger($ops->{verbose} || 0);
-    my $utf8    = $ops->{utf8}    || 0;
 
     # If true, the texts will be tokenized.
     my $tokenize = $self->{tokenize};
@@ -159,7 +162,6 @@ sub codify {
     $self->split_corpus_simple( {
                                  tokenize => $tokenize,
                                  verbose  => $ops->{verbose},
-                                 utf8     => $utf8,
                                  chunk    => $id,
                                  nrchunks => $nrchunks
                                 },
@@ -178,19 +180,19 @@ sub codify {
     $LOG->("Encode done in $totaltime seconds\n");
 
     $self->{conf}->param("source-tokens-count",
-                         read_second_guint32($self->{conf}->param("homedir")."/source.lex"));
+                         read_second_U32($self->{conf}->param("homedir")."/source.lex"));
     $self->{conf}->param("target-tokens-count",
-                         read_second_guint32($self->{conf}->param("homedir")."/target.lex"));
+                         read_second_U32($self->{conf}->param("homedir")."/target.lex"));
 
     $self->{conf}->param("nr-chunks", $id + $nrchunks - 1);
 
     my $x = $self->homedir;
 
-    my $Slex = Lingua::NATools::Lexicon->open("$x/source.lex");
+    my $Slex = Lingua::NATools::Lexicon->new("$x/source.lex");
     $self->{conf}->param("source-forms", $Slex->size);
     $Slex->close;
 
-    my $Tlex = Lingua::NATools::Lexicon->open("$x/target.lex");
+    my $Tlex = Lingua::NATools::Lexicon->new("$x/target.lex");
     $self->{conf}->param("target-forms", $Tlex->size);
     $Tlex->close;
 
@@ -217,14 +219,14 @@ sub _count_sentences {
     my $last;
     open CP, $txt or die "Cannot open file '$txt' for reading\n";
 
-    $LOG->(sprintf(" - $txt: %8d", $nr), "\n");
+    $LOG->(sprintf(" - $txt: %8d", $nr));
 
     while (<CP>) {
         $nr++ if m!^\$$!;
         $LOG->(sprintf("\b\b\b\b\b\b\b\b%8d", $nr)) if $nr % 1000 == 0;
         $last = $_;
     }
-    $nr++ unless $last =~ m!^\$$!;
+    $nr++ unless $last && $last =~ m!^\$$!;
     close CP;
 
     $LOG->(sprintf("\b\b\b\b\b\b\b\b%8d\n", $nr));
@@ -282,6 +284,35 @@ sub index_invindexes {
     $LOG->(" Merged target index in $time seconds\n");
 }
 
+sub _ngrams_reorganize {
+    my ($from, $to) = @_;
+    open R, "<:utf8", $from or die "Can't open file [$from] for reading";
+    open W, ">:utf8", $to   or die "Can't open file [$to] for writing";
+    while(<R>) {
+        chomp;
+        my @F = split /\s/, $_;
+        push @F, shift @F;
+        print W "@F\n";
+    }
+    close W;
+    close R;
+    unlink $from;
+}
+			
+sub _ngrams_tosqlite {
+    my ($from, $to, $n) = @_;
+    my @v = (undef, undef, qw/bigrams trigrams tetragrams/);
+    open SQL, "|sqlite3 $to";
+    my $fields = join(",", map {"w$_"} (1..$n));
+    print SQL "CREATE TABLE $v[$n] ($fields,occs);\n";
+    print SQL ".separator ' '\n";
+    print SQL ".import $from $v[$n]\n";
+    for my $i (1..$n) {
+        print SQL "CREATE INDEX idx${n}w${i} ON $v[$n] (w$i);"
+    }
+    close SQL;
+    unlink $from;
+}
 
 sub index_ngrams {
     my ($self, $v) = @_;
@@ -295,39 +326,23 @@ sub index_ngrams {
         my $file = sprintf("%s/source.%03d.crp", $ID, $i);
         $LOG->(" Creating ngrams for '$file'\n");
 
-        time_command(join(" ",
-                          "nat-ngrams -n 2",
-                          $file,
-                          sprintf("%s/S.%03d.2grams", $ID, $i)));
-
-        time_command(join(" ",
-                          "nat-ngrams -n 3",
-                          $file,
-                          sprintf("%s/S.%03d.3grams", $ID, $i)));
-
-        time_command(join(" ",
-                          "nat-ngrams -n 4",
-                          $file,
-                          sprintf("%s/S.%03d.4grams", $ID, $i)));
+        for my $n (2..4) {
+            time_command(join(" ",
+                              "nat-ngrams -n $n",
+                              $file,
+                              sprintf("%s/S.%03d.${n}grams", $ID, $i)));
+        }
 
         ### Target language ------------------------------------------------
         $file = sprintf("%s/target.%03d.crp", $ID, $i);
         $LOG->(" Creating ngrams for '$file'\n");
 
-        time_command(join(" ",
-                          "nat-ngrams -n 2",
-                          $file,
-                          sprintf("%s/T.%03d.2grams", $ID, $i)));
-
-        time_command(join(" ",
-                          "nat-ngrams -n 3",
-                          $file,
-                          sprintf("%s/T.%03d.3grams", $ID, $i)));
-
-        time_command(join(" ",
-                          "nat-ngrams -n 4",
-                          $file,
-                          sprintf("%s/T.%03d.4grams", $ID, $i)));
+        for my $n (2..4) {
+            time_command(join(" ",
+                              "nat-ngrams -n $n",
+                              $file,
+                              sprintf("%s/T.%03d.${n}grams", $ID, $i)));
+        }
     }
 
     ## Merge all
@@ -347,32 +362,10 @@ sub index_ngrams {
             unlink "$ngrams.txt";
             unlink $ngrams;
 
-            open R, "$ID/_$l$i";
-            open W, ">", "$ID/__$l$i";
-            while(<R>) {
-                chomp;
-                my @F = split /\s/, $_;
-                push @F, shift @F;
-                print W "@F\n";
-            }
-            close W;
-            close R;
-            unlink "$ID/_$l$i";
-			
-            my @v = (undef, undef, qw/bigrams trigrams tetragrams/);
-            open SQL, "|sqlite3 $ID/$l.$i.sqlite";
-            my $fields = join(",",map{"w$_"}(1..$i));
-            print SQL "CREATE TABLE $v[$i] ($fields,occs);\n";
-            print SQL ".separator ' '\n";
-            print SQL ".import $ID/__$l$i $v[$i]\n";
-            for my $ii (1..$i) {
-                print SQL "CREATE INDEX idx${l}${i}w${ii} ON $v[$i] (w$ii);"
-            }
-            close SQL;
-            unlink "$ID/__$l$i";
+            _ngrams_reorganize("$ID/_$l$i" => "$ID/__$l$i");
+            _ngrams_tosqlite("$ID/__$l$i" => "$ID/$l.$i.sqlite", $i);
         }
     }
-
     $self->{conf}->param("n-grams", "1");
     $self->{conf}->write($self->{conf}->param("cfg"));
 }
@@ -385,7 +378,6 @@ sub split_corpus_simple {
     my $tokenize = $ops->{tokenize} || 0;
     my $nrchunks = $ops->{nrchunks} or die "split_corpus_simple called without number of chunks.";
     my $i        = $ops->{chunk}    or die "split_corpus_simple called without chunk id.";
-    my $utf8     = $ops->{utf8}     || 0;
     my $LOG      = _new_logger($ops->{verbose}  || 0);
 
     my $ODIR = $self->{conf}->param("homedir");
@@ -394,16 +386,14 @@ sub split_corpus_simple {
         my $c = 0;
         local $/ = "\n\$\n";
 
-        my $mode = $utf8 ? ":utf8" : "";
-
-        open A, "<$mode", $TXT1 or die "Cannot open file $TXT1\n";
-        open B, "<$mode", $TXT2 or die "Cannot open file $TXT2\n";
+        open A, "<:utf8", $TXT1 or die "Cannot open file $TXT1\n";
+        open B, "<:utf8", $TXT2 or die "Cannot open file $TXT2\n";
 
         my $out1 = catfile $ODIR => sprintf("source.%03d",$i);
         my $out2 = catfile $ODIR => sprintf("target.%03d",$i);
 
-        open AA, ">", "$mode", $out1 or die "Cannot create output file $out1";
-        open BB, ">", "$mode", $out2 or die "Cannot create output file $out2";
+        open AA, ">:utf8", $out1 or die "Cannot create output file $out1";
+        open BB, ">:utf8", $out2 or die "Cannot create output file $out2";
 
         $LOG->(" Creating chunks:\n");
 
@@ -435,8 +425,8 @@ sub split_corpus_simple {
                 $out1 = catfile $ODIR => sprintf("source.%03d",$i);
                 $out2 = catfile $ODIR => sprintf("target.%03d",$i);
 
-                open AA, ">", "$mode", $out1 or die "Cannot create output file $out1";
-                open BB, ">", "$mode", $out2 or die "Cannot create output file $out2";
+                open AA, ">:utf8", $out1 or die "Cannot create output file $out1";
+                open BB, ">:utf8", $out2 or die "Cannot create output file $out2";
 
                 $LOG->(", $i");
             }
@@ -458,7 +448,7 @@ sub run_initmat {
                                  sprintf("target.%03d.crp",$chunk)));
     my $mat = catfile($self->{conf}->param("homedir"),
                       sprintf("matrix.%03d.init",$chunk));
-    time_command("$BINPREFIX/nat-initmat $crp1 $crp2 $mat");
+    time_command("nat-initmat $crp1 $crp2 $mat");
 }
 
 
@@ -469,7 +459,7 @@ sub run_mat2dic {
     my $dic   = catfile($self->{conf}->param("homedir"),
                         sprintf("dict.%03d",$chunk));
 
-    time_command("$BINPREFIX/nat-mat2dic $matIn $dic");
+    time_command("nat-mat2dic $matIn $dic");
     unlink $matIn;
 }
 
@@ -488,7 +478,7 @@ sub run_post {
                     catfile($self->{conf}->param("homedir"),
                             sprintf("target.%03d.crp.partials", $chunk)));
 
-    time_command("$BINPREFIX/nat-postbin $dic $p1 $p2 $lex1 $lex2 $bin1 $bin2");
+    time_command("nat-postbin $dic $p1 $p2 $lex1 $lex2 $bin1 $bin2");
 
     unlink $dic;
 }
@@ -505,7 +495,7 @@ sub run_generic_EM {
     my $matIn  = catfile($self->{conf}->param("homedir"), sprintf("matrix.%03d.init",$chunk));
     my $matOut = catfile($self->{conf}->param("homedir"), sprintf("matrix.%03d.EM",$chunk));
 
-    time_command("$BINPREFIX/nat-$alg $iter $crp1 $crp2 $matIn $matOut");
+    time_command("nat-$alg $iter $crp1 $crp2 $matIn $matOut");
 
     unlink $matIn;
 }
@@ -580,8 +570,8 @@ sub run_dict_add {
     else {
         ($dic1, $dic2) = ($self->{DIC1}, $self->{DIC2});
 
-        time_command("$BINPREFIX/nat-dict add $dic1 $bin1");
-        time_command("$BINPREFIX/nat-dict add $dic2 $bin2");
+        time_command("nat-dict add $dic1 $bin1");
+        time_command("nat-dict add $dic2 $bin2");
   }
 }
 
@@ -614,11 +604,9 @@ sub pre_chunk {
     my $crp2 = catfile($dir, sprintf("target.%03d.crp", $chunk));
 
     my $ignore = "";
-    my $utf8   = "";
     $ignore = "-i" if $ops->{ignore_case};
-    $utf8   = "-u" if $ops->{utf8};
 
-    time_command("$BINPREFIX/nat-pre $ignore $utf8 $cp1 $cp2 $lex1 $lex2 $crp1 $crp2");
+    time_command("nat-pre $ignore $cp1 $cp2 $lex1 $lex2 $crp1 $crp2");
 }
 
 
@@ -627,8 +615,7 @@ sub dump_ptd {
     my $conf = shift || {};
     my $dir = $self->{conf}->param("homedir");
     my $u = "";
-    $u = "-utf8" if $ops->{utf8};
-    time_command("$BINPREFIX/nat-dumpDicts $u -self $dir");
+    time_command("nat-dumpDicts -self $dir");
 }
 
 
@@ -728,11 +715,11 @@ sub rank {
     my ($s,$t);
     my $i = 0;
 
-    open CSS, "$BINPREFIX/nat-css $slex $scrp $tlex $tcrp all |"
+    open CSS, "nat-css $slex $scrp $tlex $tcrp all |"
       or die "Cannot open pipe...\n";
 
-    my $lex1 = NAT::Lexicon->open($slex);
-    my $lex2 = NAT::Lexicon->open($tlex);
+    my $lex1 = NAT::Lexicon->new($slex);
+    my $lex2 = NAT::Lexicon->new($tlex);
 
     my $dic1 = NAT::Dict->open($sdic);
     my $dic2 = NAT::Dict->open($tdic);
@@ -1032,7 +1019,7 @@ sub tmx2files {
     my @desired_languages = @_;
 
     my $reader = XML::TMX::Reader->new($tmx);
-    return undef unless $reader;
+    (not $reader) and DEBUG("Error initializing XML::TMX::Reader for $tmx") and return undef;
 
     my @langs = map { s/_.*$//; lc $_} $reader->languages;
 
@@ -1058,19 +1045,21 @@ sub tmx2files {
         }		
     }
 
-    print STDERR "done\nExporting TMX..." if $conf->{verbose};
+    print STDERR "done ($l1,$l2)\nExporting TMX..." if $conf->{verbose};
     my ($f1,$f2) = ("$tmx-$l1", "$tmx-$l2");
     my $CNT=0;
-    my $mode = ">";
-    $mode = ">:utf8" if $conf->{utf8};
-    open F1, $mode, $f1 or return undef;
-    open F2, $mode, $f2 or return undef;
+    open F1, ">:utf8", $f1 or (DEBUG "Error creating file $f1" and return undef);
+    open F2, ">:utf8", $f2 or (DEBUG "Error creating file $f2" and return undef);
     $reader->ignore_markup;
     my $processor = sub {
         my $tu = shift;
-        $CNT++;
         printf STDERR "\rExporting TMX (%d TU) ...", $CNT if $conf->{verbose} && !($CNT % 1000);
+
+        # Temporary hack -- XML::TMX::Reader should normalize languages
+        $tu->{lc $_} = $tu->{$_} for (keys %$tu);
+
         if (exists($tu->{$l1}) && exists($tu->{$l2})) {
+            $CNT++;
             my ($t1, $t2) = ($tu->{$l1}, $tu->{$l2});
             for ($t1,$t2) {
                 s/\$/_DOLLAR_/g;
@@ -1096,12 +1085,8 @@ sub mytokenize {
     return $string;
 }
 
-sub DEBUG {
-    $DEBUG && print join(" ",@_),"\n"
-}
 
-
-sub read_second_guint32 {
+sub read_second_U32 {
     my $file = shift;
     my $int;
     open F, $file or die "Can't open file :'$file'";
@@ -1157,7 +1142,7 @@ Use this function to initialize a parallel corpora repository. You
 must supply a C<directory> where the repository will reside, and its
 C<name>:
 
-  my $pcorpus = NAT->init("/var/corpora", "myPCorpus")
+  my $pcorpus = Lingua::NATools->init("/var/corpora", "myPCorpus")
 
 This would create a directory named C</var/corpora/myPCorpus> with a
 configuration file, and returns a blessed object.
@@ -1170,7 +1155,7 @@ To add texts to this empty repository use the C<codify> method.
 This function loads information from a NAT repository. Call it with
 the directory where the repository was created.
 
-  my $pcorpus = NAT->load("/var/corpora/EuroParl-PT.EN");
+  my $pcorpus = Lingua::NATools->load("/var/corpora/EuroParl-PT.EN");
 
 
 =head2 C<codify>
@@ -1357,7 +1342,7 @@ identifier.
 This function calls nat-dumpDicts command to dump a PTD for the current
 corpus.
 
-  $self -> dump_ptd( {utf8 => 1} );
+  $self -> dump_ptd( );
 
 
 =head2 C<time_command>
@@ -1374,7 +1359,7 @@ The C<align> constructor is used to align two parallel, sentence
 aligned corpora. Use it with
 
   use NAT;
-  NAT->align("EN", "PT");
+  Lingua::NATools->align("EN", "PT");
 
 where C<EN> and C<PT> are parallel corpora files. These files syntax
 is a sequence of sentences, divided by lines with the dollar sign.
@@ -1389,8 +1374,8 @@ function to be applied to each sentence in the source or target
 corpus:
 
   use NAT;
-  NAT->align("EN", "PT", { filter1 => sub{ ... },
-                           filter2 => sub{ ... } });
+  Lingua::NATools->align("EN", "PT", { filter1 => sub{ ... },
+                                       filter2 => sub{ ... } });
 
 Note that you can use just one filter.
 

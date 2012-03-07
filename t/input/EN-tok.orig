@@ -1227,7 +1227,7 @@ Analysis
 ,
 a
 fault
-­
+Â­
 based
 criterion
 usually
@@ -1259,7 +1259,7 @@ implementation
 of
 the
 Proteum
-­
+Â­
 RS
 /
 PN
@@ -3062,7 +3062,7 @@ followed
 by
 its
 semi
-­
+Â­
 automatic
 transformation
 into
@@ -3193,7 +3193,7 @@ from
 procedural
 to
 object
-­
+Â­
 oriented
 we
 propose
@@ -3253,7 +3253,7 @@ support
 of
 a
 Draco
-­
+Â­
 Puc
 machine
 .
@@ -3288,11 +3288,11 @@ recognize
 instances
 of
 Type
-­
+Â­
 Object
 ,
 Association
-­
+Â­
 Object
 ,
 State
@@ -3612,7 +3612,7 @@ one
 of
 the
 fault
-­
+Â­
 based
 testing
 criteria
@@ -3664,7 +3664,7 @@ a
 tool
 named
 Proteum
-­
+Â­
 RS
 was
 carried
@@ -3700,7 +3700,7 @@ an
 instantiation
 of
 Proteum
-­
+Â­
 RS
 ,
 called
@@ -3811,7 +3811,7 @@ been
 used
 for
 reactive
-­
+Â­
 system
 specification
 .
@@ -3843,7 +3843,7 @@ Analysis
 --
 a
 fault
-­
+Â­
 based
 criterion
 usually
@@ -3895,7 +3895,7 @@ the
 implementation
 of
 Proteum
-­
+Â­
 RS
 /
 PN
@@ -4572,7 +4572,7 @@ system
 $
 Dependable
 object
-­
+Â­
 oriented
 software
 should
@@ -4677,7 +4677,7 @@ for
 developing
 dependable
 object
-­
+Â­
 oriented
 software
 .
@@ -4743,7 +4743,7 @@ reflective
 software
 architecture
 called
-Guaraná
+GuaranÃ¡
 .
 @
 The
@@ -4983,7 +4983,7 @@ of
 the
 University
 of
-São
+SÃ£o
 Paulo
 is
 presented
@@ -5578,7 +5578,7 @@ objects
 so
 that
 non
-­
+Â­
 expert
 users
 (
@@ -7538,7 +7538,7 @@ Portuguese
 @
 This
 spell
-­
+Â­
 checker
 is
 available
@@ -7585,7 +7585,7 @@ is
 also
 available
 on
-­
+Â­
 line
 at
 http://www.dcc.ufmg/verifica.
@@ -7640,7 +7640,7 @@ Since
 a
 traditional
 spell
-­
+Â­
 checker
 has
 some
@@ -9481,8 +9481,8 @@ ASiA
 (
 Ambiente
 de
-Simulação
-Automático
+SimulaÃ§Ã£o
+AutomÃ¡tico
 )
 for
 computer
@@ -9826,7 +9826,7 @@ of
 standardization
 for
 message
-­
+Â­
 passing
 programming
 environments
@@ -9859,9 +9859,9 @@ standard
 .
 @
 Point
-­
+Â­
 to
-­
+Â­
 point
 communication
 routines
@@ -9890,9 +9890,9 @@ performance
 of
 MPI
 point
-­
+Â­
 to
-­
+Â­
 point
 communication
 routines
@@ -10450,7 +10450,7 @@ the
 development
 of
 RPC
-­
+Â­
 based
 distributed
 applications
@@ -10476,7 +10476,7 @@ which
 follow
 the
 client
-­
+Â­
 server
 model
 .
@@ -10509,7 +10509,7 @@ was
 implemented
 using
 object
-­
+Â­
 oriented
 techniques
 and
@@ -10585,7 +10585,7 @@ in
 a
 parallel
 architecture
-­
+Â­
 SP2
 .
 @
@@ -10832,7 +10832,7 @@ the
 implementation
 of
 PVM
-­
+Â­
 W95
 (
 Parallel
@@ -10900,7 +10900,7 @@ performance
 evaluation
 of
 PVM
-­
+Â­
 W95
 .
 @
@@ -10911,7 +10911,7 @@ show
 that
 the
 PVM
-­
+Â­
 W95
 is
 stable
@@ -11439,7 +11439,7 @@ performed
 on
 a
 special
-­
+Â­
 built
 distributed
 simulation
@@ -11673,7 +11673,7 @@ activity
 (
 at
 run
-­
+Â­
 time
 ),
 covering
@@ -11733,7 +11733,7 @@ analysis
 of
 the
 process
-­
+Â­
 scheduling
 literature
 ,

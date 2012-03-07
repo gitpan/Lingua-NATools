@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,12 +39,12 @@ struct cItem {
     /** next column  */
     struct cItem *nextC;
     /** row number  */
-    guint32       row;
+    nat_uint32_t       row;
     /** column number  */
-    guint32       column;
+    nat_uint32_t       column;
     /** cell value  */
-    guint32       value;
-};
+    nat_uint32_t       value;
+} __attribute__((packed));
 
 /**
  * @brief ??
@@ -53,50 +53,32 @@ struct cItem {
  */
 struct cMat2 {
     /** Number of rows */
-    guint32        Nrows;
+    nat_uint32_t        Nrows;
     /** Number of columns */
-    guint32        Ncolumns;    
+    nat_uint32_t        Ncolumns;    
     /** list of pointers to first item per row */
     struct cItem **firstR;
     /** list of pointers to first item per column */
     struct cItem **firstC;      
     /** sparse data structure */
-    struct cItem  *items;       
-    /** boolean 0 = matrix is dirty, 1 = matrix = clean */ 
-    guint32        clean;       
+    struct cItem *items;       
+    /** bool 0 = matrix is dirty, 1 = matrix = clean */ 
+    nat_boolean_t clean;       
     /** ??  */
-    long           p;
+    long          p;
     /** pointer to empty space & memory available */
-    long           memory;      
+    long          memory;      
 };
 
-int          tempdict_allocmatrix2         (struct cMat2    *Matrix,
-					    guint32          Nrow,
-					    guint32          Ncolumn);
-
-void         tempdict_freematrix2          (struct cMat2    *Matrix);
-
-int          tempdict_dirtyputvalue2       (struct cMat2    *Matrix,
-				   float            f,
-				   guint32          r,
-				   guint32          c);
-
-float        tempdict_getrowmax2           (struct cMat2    *Matrix,
-					    guint32          r,
-					    guint32         *c,
-					    float           *f,
-					    guint32          max);
-
-float        tempdict_getcolumnmax2        (struct cMat2    *Matrix,
-					    guint32          c,
-					    guint32         *r,
-					    float           *f,
-					    guint32          max);
-
-int          tempdict_loadmatrix2          (struct cMat2    *Matrix,
-					    const char      *filename);
-
-int          tempdict_savematrix2          (struct cMat2    *Matrix,
-					    const char      *filename);
+int          tempdict_allocmatrix2(struct cMat2 *Matrix, nat_uint32_t Nrow, nat_uint32_t Ncolumn);
+void         tempdict_freematrix2(struct cMat2    *Matrix);
+int          tempdict_dirtyputvalue2(struct cMat2 *Matrix, float f,
+                                     nat_uint32_t r, nat_uint32_t c);
+float        tempdict_getrowmax2(struct cMat2 *Matrix, nat_uint32_t r, nat_uint32_t *c,
+                                 float *f, nat_uint32_t max);
+float        tempdict_getcolumnmax2 (struct cMat2 *Matrix, nat_uint32_t c, nat_uint32_t *r,
+                                     float *f, nat_uint32_t max);
+int          tempdict_loadmatrix2(struct cMat2 *Matrix, const char *filename);
+int          tempdict_savematrix2(struct cMat2 *Matrix, const char *filename);
 
 #endif

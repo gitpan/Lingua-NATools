@@ -19,7 +19,7 @@ corpus. Cells count the words co-occurrence on the same sentence.
 The C<matrix> file is then created with the matrix information.
 
 Optionally, you can pass to the system two exclude lists, as returned
-by the C<nat-words2id> tool. This words will be ignored, and counting
+by the C<nat-words2id> tool. These words will be ignored, and counting
 will not be done for them.
 
 The matrix is saved and can be processed later by EM-Algorithm methods

@@ -19,7 +19,7 @@ use Parse::Yapp;
 my $pedantic = $ENV{AMBS_PEDANTIC} || 0;
 
 my %app_deps = (
-                'pre'       => ['pre.o', 'isolatin.o'],
+                'pre'       => ['pre.o'],
                 'grep'      => ['grep.o'],
                 'mergeidx'  => ['invindexjoin.o'],
                 'initmat'   => ['initmat.o', 'matrix.o'],
@@ -28,19 +28,19 @@ my %app_deps = (
                 'sampleb'   => ['sampleb.o', 'matrix.o'],
                 'mat2dic'   => ['mat2dic.o', 'tempdict.o', 'matrix.o'],
                 'words2id'  => ['words2id.o'],
-                'css'       => ['ssentence.o', 'isolatin.o'],
+                'css'       => ['ssentence.o'],
                 'sentalign' => ['sent_align.o'],
                 'postbin'   => ['postbin.o', 'tempdict.o'],
                 'mkntd'     => ['mkdict.o'],
                 'ntd-add'   => ['adddic.o'],
                 'ntd-dump'  => ['ntdump.o'],
-                'ngrams'    => ['ngrams_bdb.o', 'isolatin.o'],
+                'ngrams'    => ['ngrams_bdb.o'],
                 'server'    => ['server.o'],
                );
 
 my %lib_deps = (
-                'words.o'      => ['words.c', 'words.h'],
-                'corpus.o'     => ['corpus.c', 'corpus.h'],
+                'words.o'      => ['words.c'   , 'NATools/words.h' ],
+                'corpus.o'     => ['corpus.c'  , 'NATools/corpus.h'],
                 'standard.o'   => ['standard.c', 'standard.h'],
                 'dictionary.o' => ['dictionary.c', 'dictionary.h'],
                 'natdict.o'    => ['natdict.c', 'natdict.h'],
@@ -52,6 +52,7 @@ my %lib_deps = (
                 'parseini.o'   => ['parseini.c', 'parseini.h'],
                 'srvshared.o'  => ['srvshared.c', 'srvshared.h'],
                 'ngramidx.o'   => ['ngramidx.c', 'ngramidx.h'],
+                'unicode.o'      => ['unicode.c', 'unicode.h'],
              );
 
 my %o_deps = (
@@ -64,7 +65,6 @@ my %o_deps = (
               'grep.o'         => ['grep.c'],
               'postbin.o'      => ['postbin.c'],
               'server.o'       => ['server.c'],
-              'isolatin.o'     => ['isolatin.c', 'isolatin.h'],
               'adddic.o'       => ['adddic.c'],
               'ipfp.o'         => ['ipfp.c'],
               'ntdump.o'       => ['ntdump.c'],
@@ -180,12 +180,8 @@ sub ACTION_code {
 
 sub ACTION_create_manpages {
     my $self = shift;
-
-    _LOG_ "= Creating manpages";
     my $pods = $self->rscan_dir("pods", qr/\.pod$/);
-
     my $version = $self->notes('version');
-
     my $pod2man = Pod::Man->new(release => "Lingua-NATools-$version",
                                 center  => 'Lingua::NATools',
                                 section => 1);
@@ -222,7 +218,6 @@ sub ACTION_create_objects {
     my $cflags = $self->notes('cflags');
     $cflags .= " -g -Wall -Werror" if $pedantic;
 
-    _LOG_ "= Building object files";
     for my $object (keys %o_deps) {
         my @deps = map { "src/$_" } @{$o_deps{$object}};
         my $obj = "_build/objects/$object";
@@ -246,8 +241,6 @@ sub ACTION_create_apps {
     my $libs = $self->notes('libs');
     $libs = "-L_build/lib -lnatools $libs";
 
-    _LOG_ "= Building applications binaries";
-
     my $libbuilder = $self->notes('libbuilder');
     my $EXE = $libbuilder->{exeext};
     for my $app (keys %app_deps) {
@@ -269,9 +262,6 @@ sub ACTION_create_apps {
 
 sub ACTION_create_library {
     my $self = shift;
-
-    _LOG_ "= Building natools library";
-
     my $libbuilder = $self->notes('libbuilder');
     my $LIBEXT = $libbuilder->{libext};
 
@@ -322,21 +312,29 @@ sub ACTION_create_test_binaries {
                 );
 
     my $libbuilder = $self->notes('libbuilder');
+
+    my $cflags = $self->notes('cflags');
+    $cflags .= " -g -Wall -Werror" if $pedantic;
+
     my $libs = join(" ",
-                    "-Isrc",
-                    $self->notes('cflags'),
                     "-L_build/lib -lnatools",
                     $self->notes('libs'));
     my $EXE = $libbuilder->{exeext};
     for my $test (keys %tests) {
         my @deps = map { "t/bin/$_" } @{$tests{$test}};
         my $exe = $test.$EXE;
+        my $object = "t/bin/$test.o";
         my $exepath = "t/bin/$exe";
 
         next if $self->up_to_date(\@deps, $exepath);
 
+        _CC_ $libbuilder => (object_file => $object,
+                             source      => $deps[0],
+                             include_dirs => ["src"],
+                             extra_compiler_flags => $cflags);
+
         _LD_ $libbuilder => (exe_file  => $exepath,
-                             objects   => \@deps,
+                             objects   => [$object],
                              extra_linker_flags => $libs);
     }
 }
@@ -349,17 +347,23 @@ sub ACTION_test {
      $self->dispatch('create_test_binaries');
 
      if ($^O =~ /mswin32/i) {
-         $ENV{PATH} = catdir($self->blib,"usrlib").";$ENV{PATH}";
+         $ENV{PATH} = join(";",
+                           catdir($self->blib,"script"),
+                           catdir($self->blib,"usrlib"),
+                           $ENV{PATH});;
      }
      elsif ($^O =~ /darwin/i) {
          $ENV{DYLD_LIBRARY_PATH} = catdir($self->blib,"usrlib");
+         $ENV{PATH} = catdir($self->blib,"script") . ":$ENV{PATH}";
      }
      elsif ($^O =~ /(?:linux|bsd|sun|sol|dragonfly|hpux|irix)/i) {
          $ENV{LD_LIBRARY_PATH} = catdir($self->blib,"usrlib");
+         $ENV{PATH} = catdir($self->blib,"script") . ":$ENV{PATH}";
      }
      elsif ($^O =~ /aix/i) {
          my $oldlibpath = $ENV{LIBPATH} || '/lib:/usr/lib';
          $ENV{LIBPATH} = catdir($self->blib,"usrlib").":$oldlibpath";
+         $ENV{PATH} = catdir($self->blib,"script") . ":$ENV{PATH}";
      }
 
     $self->SUPER::ACTION_test
@@ -386,8 +390,6 @@ sub ACTION_compile_xscode {
     my $archdir = catdir( $self->blib, 'arch', 'auto', 'Lingua', 'NATools');
     mkpath( $archdir, 0, 0777 ) unless -d $archdir;
 
-    _LOG_ "= Creating lib NATools bindings";
-
     my $cfile = catfile("xs","NATools.c");
     my $xsfile= catfile("xs","NATools.xs");
 
@@ -395,15 +397,19 @@ sub ACTION_compile_xscode {
         _LOG_ "  [XS] natools.xs";
         ExtUtils::ParseXS::process_file( filename   => $xsfile,
                                          prototypes => 0,
+                                         typemap    => 'typemap',
                                          output     => $cfile);
     }
 
     my $ofile = catfile "xs","NATools.o";
     if (!$self->up_to_date($cfile, $ofile)) {
+        my $cflags = $self->notes('cflags');
+        $cflags .= " -g -Wall -Werror" if $pedantic;
+
         _LOG_ "  [CC] natools.c";
         _CC_ $libbuilder => ( source               => $cfile,
                               include_dirs         => [ "src" ],
-                              extra_compiler_flags => $self->notes('cflags'),
+                              extra_compiler_flags => $cflags,
                               object_file          => $ofile);
     }
 
@@ -527,7 +533,7 @@ sub compute_lib_dir {
 
 sub write_config_h {
     my $builder = shift;
-    open H, ">", "src/config.h";
+    open H, ">", "src/NATools/config.h";
 
     print H "#define VERSION \"",$builder->notes('version'),"\"\n";
     print H "#define PACKAGE \"Lingua::NATools\"\n";
@@ -536,6 +542,18 @@ sub write_config_h {
     close H;
 }
 
+sub check_sqlite3 {
+    my ($builder, $CAC) = @_;
+    $CAC->msg_checking("for sqlite3 binary");
+    my $sqlite = $CAC->check_prog("sqlite3");
+    if (!defined($sqlite)) {
+        $CAC->msg_result("no");
+        $builder->FAIL;
+    } else {
+        $builder->config_data('sqlite3' => $sqlite);
+        $CAC->msg_result("yes");
+    }
+}
 
 sub check_berkeley_db {
     my ($builder, $CAC, $version) = @_;

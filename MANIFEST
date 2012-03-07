@@ -7,6 +7,7 @@ MANIFEST
 inc/MyBuilder.pm
 
 xs/NATools.xs
+xs/typemap
 
 lib/Lingua/NATools.pm
 lib/Lingua/NATools/CGI.pm
@@ -30,25 +31,23 @@ lib/Lingua/NATools/PTD/XzDmp.pm
 3rdParty/interface-freeling.pl
 
 src/adddic.c
-src/bucket.c
+src/bucket.c          ## testado com o nat-these (nat-css)
 src/bucket.h
-src/corpus.c
-src/corpus.h
+src/corpus.c          ## testado no words_t.c
 src/corpusinfo.c
 src/corpusinfo.h
-src/dictionary.c
+src/dictionary.c      ## testado com o nat-these (postbin)
 src/dictionary.h
 src/grep.c
-src/initmat.c
-src/invindex.c
+src/initmat.c         ## testado no nat-these
+src/invindex.c        ## testado com o nat-these (nat-css)
 src/invindex.h
 src/invindexjoin.c
-src/ipfp.c
-src/isolatin.c
-src/isolatin.h
-src/libnatools.la
-src/mat2dic.c
-src/matrix.c
+src/ipfp.c            ## testado no nat-these
+src/unicode.c         ## testado no nat-pre/nat-these
+src/unicode.h
+src/mat2dic.c         ## testado no nat-these
+src/matrix.c          ## testado no nat-these
 src/matrix.h
 src/mkdict.c
 src/natdict.c
@@ -57,18 +56,17 @@ src/natlexicon.c
 src/natlexicon.h
 src/ngramidx.c
 src/ngramidx.h
-src/ngrams.c
 src/ngrams_bdb.c
 src/ntdump.c
-src/parseini.c
+src/parseini.c        ## testado no 03.1.
 src/parseini.h
 src/partials.c
 src/partials.h
-src/postbin.c
-src/pre.c
+src/postbin.c         ## testado no nat-these
+src/pre.c             ## testado no nat-these e nat-pre
 src/samplea.c
 src/sampleb.c
-src/search_sentence.c
+src/search_sentence.c  ## testado no nat-these
 src/sent_align.c
 src/srvshared.c
 src/srvshared.h
@@ -76,10 +74,13 @@ src/standard.c
 src/standard.h
 src/tempdict.c
 src/tempdict.h
-src/words.c
-src/words.h
+src/words.c           ## testado no words_t.c
 src/words2id.c
 src/server.c
+
+src/NATools.h
+src/NATools/words.h
+src/NATools/corpus.h
 
 pods/nat-css.pod
 pods/nat-initmat.pod
@@ -91,12 +92,15 @@ pods/nat-samplea.pod
 pods/nat-sampleb.pod
 pods/nat-sentalign.pod
 
-t/bin/input/EN-tok
-t/bin/input/EN-tok.orig
-t/bin/input/EN-tok.wc
-t/bin/input/PT-tok
-t/bin/input/PT-tok.orig
-t/bin/input/PT-tok.wc
+t/input/EN-tok
+t/input/EN-tok.orig
+t/input/EN-tok.wc
+t/input/PT-tok
+t/input/PT-tok.orig
+t/input/PT-tok.wc
+t/input/02_ptd.dmp
+t/input/02_casedptd.dmp
+
 t/bin/corpus.input
 t/bin/corpus.t
 t/bin/corpus_t.c
@@ -108,9 +112,8 @@ t/bin/words_t.c
 
 t/pm/00_basic.t
 t/pm/01_config.t
-t/pm/02_casedptd.dmp
-t/pm/02_ptd.dmp
 t/pm/02_ptd.t
+t/pm/03.1_create_from_tmx.t
 t/pm/10_pcorpus.t
 t/pm/11_corpus.t
 t/pm/14_scripts.t
@@ -126,22 +129,22 @@ scripts/nat-StarDict
 scripts/nat-addDict
 scripts/nat-codify
 scripts/nat-compareDicts
-scripts/nat-create
+scripts/nat-create        ## testado no t/pm/03.1 (para tmx)
 scripts/nat-dict
-scripts/nat-dumpDicts
+scripts/nat-dumpDicts     ## testado no nat-these
 scripts/nat-examplesExtractor
-scripts/nat-lex2perl
+scripts/nat-lex2perl      ## testado no nat-pre.t
 scripts/nat-makeCWB
 scripts/nat-mkMakefile
 scripts/nat-mkRealDict
 scripts/nat-ngramsIdx
-scripts/nat-pair2tmx
+scripts/nat-pair2tmx   # testado no t/pm/03.1
 scripts/nat-ptd
 scripts/nat-rank
 scripts/nat-sentence-align
 scripts/nat-shell
 scripts/nat-substDict
-scripts/nat-tmx2pair
+scripts/nat-tmx2pair   # testado no t/pm/03.1
 
 cgis/nat-about.cgi
 cgis/nat-dict.cgi
@@ -150,5 +153,7 @@ cgis/nat-ngrams.cgi
 cgis/nat-ntd-browse.cgi
 cgis/nat-search.cgi
 3rdParty/rm-old-nat.pl
+
 META.yml
 META.json
+

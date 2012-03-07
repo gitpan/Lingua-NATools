@@ -54,8 +54,8 @@ my $builder = MyBuilder->new
                 'Text::NSP'            => '1.09',
                 'IO::Uncompress::Bunzip2' => '2.027',
                 'IO::Compress::Bzip2'  => '2.027',
-                'IO::Uncompress::UnXz' => '2.030',
-                'IO::Compress::Xz'     => '2.030',
+                'IO::Uncompress::UnXz' => '2.049',
+                'IO::Compress::Xz'     => '2.049',
                 'List::MoreUtils'      => '0',
                 'Parse::Yapp::Driver'  => '1.05',
                },
@@ -86,11 +86,13 @@ my $builder = MyBuilder->new
    add_to_cleanup => [
                       'src/*.o',
                       'src/*.so',
-                      'src/*.dylib',
-                      'src/*.dll',
+                      'src/*.dylib', 'src/*.dll',
                       'xs/*.c',
-					  'lib/Lingua/NATools/PatternRules.pm',
+                      '*.log',
+                      'lib/Lingua/NATools/PatternRules.pm',
                       'xs/*.o',
+                      't/bin/*.o', 't/bin/*.exe',
+                      't/bin/corpus', 't/bin/words',
                       'Lingua-NATools-*',
                       '_build/objects',
                       '_build/apps',
@@ -127,6 +129,8 @@ $builder->pkg_config_check($CAC, 'glib-2.0', '2.8');
 
 # check sqlite3
 $builder->pkg_config_check($CAC, 'sqlite3', '3.5.0');
+# check we have the binary in the path
+$builder->check_sqlite3($CAC);
 
 # check berkeley DB
 $builder->check_berkeley_db($CAC, "4.3");

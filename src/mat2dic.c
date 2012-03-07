@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,8 @@
 #include "tempdict.h"
 #include "standard.h"
 
+#include <glib.h>
+
 /**
  * @file
  * @brief Unit to interpret sparse matrix and create a temporary dictionary
@@ -48,10 +50,10 @@ int main(int argc, char **argv)
 {
     Matrix* matrix;
     struct cMat2 Dictionary;
-    guint32 length, k;
+    nat_uint32_t length, k;
     float rftot, *cftot, *cf;
-    guint32 r, c, Nrow, Ncolumn;
-    guint32 *pc;
+    nat_uint32_t r, c, Nrow, Ncolumn;
+    nat_uint32_t *pc;
 
     if (argc != 3)
 	report_error("Usage: mat2dic matrixfile_in dictfile_out");
@@ -69,7 +71,7 @@ int main(int argc, char **argv)
 
     cftot = g_new(float, Ncolumn + 1);
     cf    = g_new(float, Ncolumn + 1);
-    pc    = g_new0(guint32, Ncolumn + 1);
+    pc    = g_new0(nat_uint32_t, Ncolumn + 1);
 
     cftot = (float *) memset(cftot, 0, (Ncolumn+1) * sizeof(float));
 

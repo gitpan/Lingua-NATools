@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "corpus.h"
+#include <NATools/corpus.h>
 
 int main(void) {
     CorpusCell *crp;
@@ -19,7 +19,7 @@ int main(void) {
     while(!feof(input)) {
 	fgets(buff, 10, input);
 	if (!feof(input)) {
-	    guint32 id = atoi(buff);
+	    nat_uint32_t id = atoi(buff);
 	    corpus_add_word(corpus, id, 1);
 	}
     }

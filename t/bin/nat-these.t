@@ -1,13 +1,17 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
+use utf8;
+use warnings;
+use strict;
 use Test::More;
+use IPC::Open2;
 
 print STDERR "Warning: some of these tests can take about 1 minute on slow machines\n";
 
 our ($DIC1,$DIC2) = (undef,undef);
 
-ok -f "t/bin/input/EN-tok", "Testing English corpus existence";
-ok -f "t/bin/input/PT-tok", "Testing Portuguese (BR) corpus existence";
+ok -f "t/input/EN-tok", "Testing English corpus existence";
+ok -f "t/input/PT-tok", "Testing Portuguese (BR) corpus existence";
 
 # Following code will overlap with nat-these code.
 # This "must" be done so tests can be done at each step.
@@ -22,7 +26,7 @@ for (@prefiles) {
     ok !-f, "Checking if file $_ does no exist";
 }
 
-`_build/apps/nat-pre -q -i t/bin/input/PT-tok t/bin/input/EN-tok t/PT.lex t/EN.lex t/PT.crp t/EN.crp`;
+`_build/apps/nat-pre -q -i t/input/PT-tok t/input/EN-tok t/PT.lex t/EN.lex t/PT.crp t/EN.crp`;
 
 # 9 a 14
 for (@prefiles) {
@@ -32,14 +36,30 @@ for (@prefiles) {
 # 15
 ok -s "t/PT.crp.index" == -s "t/EN.crp.index", "Index files have the same size";
 
-open P, "_build/apps/nat-css t/PT.lex t/PT.crp t/EN.lex t/PT.crp all|"
+open P, "_build/apps/nat-css t/PT.lex t/PT.crp t/EN.lex t/EN.crp all|"
   or die "Cannot open nat-css as pipe";
 my @corpus = <P>;
 close P;
 
+is @corpus % 2 => 0;
+
 like($corpus[12], qr/^Diante das/, "Index 1 is what we hope it is");
 like($corpus[16], qr/^O planejamento/, "Index 2 is what we hope it is");
 like($corpus[24], qr/^Este trabalho/, "Index 5 is what we hope it is");
+
+###
+my ($chl_in, $chl_out);
+my $pid = open2 $chl_out, $chl_in => "_build/apps/nat-css t/PT.lex t/PT.crp t/EN.lex t/EN.crp";
+binmode $chl_in => ":utf8";
+binmode $chl_out => ":utf8";
+
+print $chl_in "padrão\n";
+my @matches = read_lines($chl_out);
+is @matches % 2 => 0;
+close $chl_out;
+close $chl_in;
+
+like $matches[-2], qr/O requisito de alta portabilidade sem perda de eficiência torna o MPI um padrão extenso ./;
 
 ###
 ### nat-initmat
@@ -118,7 +138,7 @@ ok(defined($DIC1));
 ok(defined($DIC2));
 
 {
-  my $ORIGINAL = do "t/bin/input/PT-tok.wc";
+  my $ORIGINAL = do "t/input/PT-tok.wc";
   for (keys %$ORIGINAL) {
     next if $_ eq '$';
     print STDERR "\n\n$_\n\n" unless $ORIGINAL->{$_} == $DIC1->{$_}{count};
@@ -129,7 +149,7 @@ ok(defined($DIC2));
 
 
 {
-  my $ORIGINAL = do "t/bin/input/EN-tok.wc";
+  my $ORIGINAL = do "t/input/EN-tok.wc";
   for (keys %$ORIGINAL) {
     next if $_ eq '$';
     print STDERR "\n\n$_\n\n" unless $ORIGINAL->{$_} == $DIC2->{$_}{count};
@@ -141,5 +161,15 @@ ok(defined($DIC2));
 unlink(@prefiles,@initmatfiles,@ipfpfiles,@mat2dicfiles,@postfiles);
 
 done_testing;
+
+sub read_lines {
+    my $handler = shift;
+    my $ready = <$handler>;
+    my @ans;
+    while (($ready = <$handler>) ne "-*- READY -*-\n") {
+        push @ans => $ready;
+    }
+    return @ans;
+}
 
 ### EOF

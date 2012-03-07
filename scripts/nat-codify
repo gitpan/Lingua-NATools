@@ -75,8 +75,8 @@ my $currentdir   = getcwd;
 ### Check if we have specific languages defined.
 @langs = ($1,$2) if ($langs && $langs =~ m!([a-z-]+)\.\.([a-z-]+)!i);
 
-my $self = NAT->init({csize => $csize || undef},
-                     $currentdir, $defaultname, @langs);
+my $self = Lingua::NATools->init({csize => $csize || undef},
+                                 $currentdir, $defaultname, @langs);
 
 $i = 0 if $utf8;
 $self->{tokenize} = 1 if $tokenize;

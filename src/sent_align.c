@@ -35,6 +35,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "NATools.h"
+
 /**
  * @file
  * @brief Sentence-aligner main program
@@ -117,16 +119,16 @@ char *hard_delimiter = NULL;	/* -D arg */
 char *soft_delimiter = NULL;	/* -d arg */
 
 /**
- * @brief Contains a boolean value to check if we are running in
+ * @brief Contains a bool value to check if we are running in
  * verbose mode (-v flag)
  */
-int verbose = 0;		/* -v arg */
+nat_boolean_t verbose = 0;		/* -v arg */
 
 /**
- * @brief Contains a boolean value to check if we are running in
+ * @brief Contains a bool value to check if we are running in
  * debug mode (-V flag)
  */
-int debug = 0;                  /* -V arg */
+nat_boolean_t debug = 0;                  /* -V arg */
 
 static void show_usage(void) {
     fprintf(stderr, "usage:\n");

@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 #include <math.h>
 
 #include "standard.h"
-#include "corpus.h"
+#include <NATools/corpus.h>
 #include "matrix.h"
 
 
@@ -73,10 +73,10 @@
 
 #ifdef DEBUG
 
-#include "words.h"
+#include <NATools/words.h>
 struct cWords W1, W2;
 
-static void printSentence(guint32 *st, struct cWords *Words)
+static void printSentence(nat_uint32_t *st, struct cWords *Words)
 {
     while (*st) printf("%s ",GiveString(Words,*st++));
     printf("\b.\n");
@@ -86,9 +86,9 @@ static void printSentence(guint32 *st, struct cWords *Words)
 
 /* EM algorithm */
 
-static void SortMatrix(CorpusCell *s, guint32 *st, guint32 length)
+static void SortMatrix(CorpusCell *s, nat_uint32_t *st, nat_uint32_t length)
 {
-    guint32 i, j, lt;
+    nat_uint32_t i, j, lt;
     i = 0;
     lt = 0;
     while (s[i].word) {
@@ -110,10 +110,10 @@ static void SortMatrix(CorpusCell *s, guint32 *st, guint32 length)
     st[lt] = 0;
 }
 
-static double MarginalProbs(double *p, double *pi, double *pj, guint32 lr, guint32 lc)
+static double MarginalProbs(double *p, double *pi, double *pj, nat_uint32_t lr, nat_uint32_t lc)
 {
     double total, f;
-    guint32 r, c;
+    nat_uint32_t r, c;
     total = 0.0f;
     for (c = 0; c < lc; c++) pj[c] = 0;
     for (r = 0; r < lr; r++) {
@@ -141,9 +141,9 @@ static void randomtest(void)
 }
 #endif
 
-static long MonteCarlo (guint32 *e, double *p, double *pi, double pN, guint32 l)
+static long MonteCarlo (nat_uint32_t *e, double *p, double *pi, double pN, nat_uint32_t l)
 {
-    guint32 r, c, i, j;
+    nat_uint32_t r, c, i, j;
     double d, mtse, rnd, s[MAXLEN][MAXLEN], si[MAXLEN], sN;
     long Nsamples;
 
@@ -200,12 +200,12 @@ static void EMalgorithm(struct cMatrix *M, struct cCorpus *C1, struct cCorpus *C
     double nij;
 #endif
     long k, Nsamples;
-    guint32 length;
+    nat_uint32_t length;
     CorpusCell *s1, *s2;
-    guint32 r, c, l;
-    guint32 st1[MAXLEN + 1];
-    guint32 st2[MAXLEN + 1];
-    guint32 e[MAXLEN][MAXLEN];          /* solution */
+    nat_uint32_t r, c, l;
+    nat_uint32_t st1[MAXLEN + 1];
+    nat_uint32_t st2[MAXLEN + 1];
+    nat_uint32_t e[MAXLEN][MAXLEN];          /* solution */
     int M1, M2;
 
     if (step % 2) { 
@@ -246,7 +246,7 @@ static void EMalgorithm(struct cMatrix *M, struct cCorpus *C1, struct cCorpus *C
 	    Nsamples = MonteCarlo(&e[0][0], &p[0][0], pi, pN, l);
 #ifdef DEBUG
 	    {
-		guint32 i,j;
+		nat_uint32_t i,j;
 		r = 0;
 		while (r < l) {
 		    c = 0;

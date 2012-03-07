@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <glib.h>
+#include <EXTERN.h>
+#include <perl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,13 +33,15 @@
 #include "standard.h"
 #include "partials.h"
 
+#include <glib.h>
 
-PartialCounts *PartialCountsAdd(PartialCounts *partials, guint32 wid)
+PartialCounts *PartialCountsAdd(PartialCounts *partials, nat_uint32_t wid)
 {
     if (wid > partials->size) {
-	guint32 newsize = partials->size;
+	nat_uint32_t newsize = partials->size;
 	while(newsize < wid) { newsize*=1.2; }
-	partials->buffer = (guint32*)g_realloc(partials->buffer, sizeof(guint32) * newsize);
+	partials->buffer = (nat_uint32_t*)g_realloc(partials->buffer,
+                                                    sizeof(nat_uint32_t) * newsize);
 	partials->size = newsize;
     }
     if (wid > partials->last) partials->last = wid;
@@ -50,12 +53,12 @@ PartialCounts *PartialCountsAdd(PartialCounts *partials, guint32 wid)
 void PartialCountsSave(PartialCounts *partials, const char* filename)
 {
     FILE *fh = fopen(filename, "wb");
-    guint32 x;
+    nat_uint32_t x;
     if (!fh) report_error("Can't create partials counts");
 
     x = partials->last + 1;
-    fwrite(&x, sizeof(guint32), 1, fh);
-    fwrite(partials->buffer, sizeof(guint32), partials->last+1, fh);
+    fwrite(&x, sizeof(nat_uint32_t), 1, fh);
+    fwrite(partials->buffer, sizeof(nat_uint32_t), partials->last+1, fh);
 
     fclose(fh);
 }
@@ -68,10 +71,10 @@ PartialCounts *PartialCountsLoad(const char* filename)
 
     partials = g_new(PartialCounts, 1);
 
-    fread(&partials->size, sizeof(guint32), 1, fh);
+    fread(&partials->size, sizeof(nat_uint32_t), 1, fh);
     partials->last = partials->size - 1;
-    partials->buffer = g_new0(guint32, partials->size);
-    fread(partials->buffer, sizeof(guint32), partials->size, fh);
+    partials->buffer = g_new0(nat_uint32_t, partials->size);
+    fread(partials->buffer, sizeof(nat_uint32_t), partials->size, fh);
 
     return partials;
 }

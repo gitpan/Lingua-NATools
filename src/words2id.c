@@ -1,7 +1,7 @@
 /* -*- Mode: C; c-file-style: "stroustrup" -*- */
 
 /* NATools - Package with parallel corpora tools
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,9 +19,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <wchar.h>
 #include <stdio.h>
-#include "words.h"
+#include <NATools/words.h>
 #include "standard.h"
+#include "unicode.h"
 
 /**
  * @file
@@ -40,10 +42,12 @@
  */
 int main(int argc, char *argv[])
 {
-    WordList *lst;
+    Words *lst;
     FILE *fd;
     FILE *fd2 = NULL;
-    char buff[150];
+    wchar_t buff[150];
+
+    init_locale();
     
     if (argc != 3 && argc != 4) {
         printf("Usage:\n");
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    lst = word_list_load(argv[1], NULL);
+    lst = words_quick_load(argv[1]);
     if (!lst) return 1;
     
     fd = fopen(argv[2], "r");
@@ -63,13 +67,13 @@ int main(int argc, char *argv[])
     }
 
     while(!feof(fd)) {
-        fgets(buff, 150, fd);
+        fgetws(buff, 150, fd);
         if (!feof(fd)) {
-            guint32 id;
-            id = word_list_get_id(lst, chomp(buff));
+            nat_uint32_t id;
+            id = words_get_id(lst, chomp(buff));
             if (id) {
                 if (argc == 4) {
-                    fwrite(&id, sizeof(guint32), 1, fd2);
+                    fwrite(&id, sizeof(nat_uint32_t), 1, fd2);
                 } else {
                     printf("%d\n", id);
                 }

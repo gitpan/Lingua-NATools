@@ -16,13 +16,15 @@ my $lex = Lingua::NATools::Lexicon->new($filename);
 
 my $size = $lex->size;
 
+binmode STDOUT, ":utf8";
+print "use utf8;\n";
 print "{\n";
 
 for (1..$size) {
-  my $word  = $lex->word_from_id($_);
-  my $count = $lex->id_count($_);
+    my $word  = $lex->word_from_id($_);
+    my $count = $lex->id_count($_);
 
-  printf("\t\"%s\" => $count,\n", quotemeta($word));
+    printf("\t\"%s\" => $count,\n", quotemeta($word));
 }
 print "}\n";
 

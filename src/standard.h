@@ -1,6 +1,6 @@
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2004  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,13 +21,10 @@
 #ifndef __STANDARD_H__
 #define __STANDARD_H__
 
-#include "config.h"
+#include <NATools.h>
 
 #include <stdio.h>
-#include <glib.h>
-
 #include <sys/time.h>
-
 
 /**
  * @file
@@ -49,12 +46,12 @@
  *
  * @todo Check if this is really useful
  */
-#define HARDDELIMITER '@'
+#define HARDDELIMITER L'@'
 
 /**
  * @brief Soft delimiter (division of aligned sentences)
  */
-#define SOFTDELIMITER '$'
+#define SOFTDELIMITER L'$'
 
 /**
  * @brief Calculates the maximum between two numbers
@@ -91,19 +88,14 @@ extern struct timeval TIMER_AFTER;
 	                ((double)TIMER_AFTER.tv_usec - (double)BEFORE.tv_usec) / 1000000 )
 
 
+void     report_error(const char *msg, ...);
+wchar_t* chomp(wchar_t *str);
 
+wchar_t* uppercase_dup(const wchar_t *str);
+wchar_t* capital_dup(const wchar_t *str);
 
-void                report_error       (const char        *msg, ...);
-char*               chomp              (char        *str);
-
-char                *uppercase_dup     (const char  *str);
-char                *capital_dup       (const char  *str);
-
-int   isCapital    (const char* str);
-int   isUPPERCASE  (const char* str);
-
-
-
+nat_boolean_t isCapital(const wchar_t* str);
+nat_boolean_t isUPPERCASE(const wchar_t* str);
 
 /**
  * @mainpage NATools Documentation

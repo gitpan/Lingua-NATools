@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2009  Alberto Simões
+ * Copyright (C) 2002-2012  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,8 @@
 #include <string.h>
 #include "matrix.h"
 
+#include <glib.h>
+
 /**
  * @file
  * @brief Code file for the matrix data structure module
@@ -44,9 +46,9 @@
  *
  * @return the new Matrix object
  */
-Matrix* AllocMatrix(guint32 nrow, guint32 ncolumn)
+Matrix* AllocMatrix(nat_uint32_t nrow, nat_uint32_t ncolumn)
 {
-    guint32 r;
+    nat_uint32_t r;
     Row row;
     Matrix *matrix;
 
@@ -90,7 +92,7 @@ Matrix* AllocMatrix(guint32 nrow, guint32 ncolumn)
  */
 void FreeMatrix(Matrix *matrix)
 {
-    guint32 r;
+    nat_uint32_t r;
 
     for (r = 1; r <= matrix->Nrows; ++r) {
 	free(matrix->rows[r].cells);
@@ -101,11 +103,11 @@ void FreeMatrix(Matrix *matrix)
 
 #if 0
 /* not used, it seems */
-guint32 UsedRow(Matrix *matrix,
-		 guint32 row)
+nat_uint32_t UsedRow(Matrix *matrix,
+		 nat_uint32_t row)
 {
     Cell *pointer;
-    guint32 length, i;
+    nat_uint32_t length, i;
 
     pointer = matrix->rows[row].cells;
     length = matrix->rows[row].length;
@@ -117,14 +119,14 @@ guint32 UsedRow(Matrix *matrix,
 
 
 static int SearchItem(Matrix *matrix,
-		      guint32 row, guint32 column,
+		      nat_uint32_t row, nat_uint32_t column,
 		      Cell **pointer,
-		      guint32 *i, guint32 *length)
+		      nat_uint32_t *i, nat_uint32_t *length)
 {
     if (row > matrix->Nrows || column > matrix->Ncolumns) 
 	return 1;
     else {
-	guint32 low, high, m;
+	nat_uint32_t low, high, m;
 	*pointer = matrix->rows[row].cells;
 	*length = matrix->rows[row].length;
 	*i = 0;
@@ -160,9 +162,9 @@ static int SearchItem(Matrix *matrix,
     }
 }
 
-static int EnlargeRow(Matrix *matrix, guint32 r)
+static int EnlargeRow(Matrix *matrix, nat_uint32_t r)
 {
-    guint32 N, nlength, olength;
+    nat_uint32_t N, nlength, olength;
 
     N = matrix->Nrows;
 
@@ -191,12 +193,12 @@ static int EnlargeRow(Matrix *matrix, guint32 r)
  *
  * @return Cell value
  */
-guint32 Get(Cell *p, MatrixVal Ma)
+nat_uint32_t Get(Cell *p, MatrixVal Ma)
 {
     return Ma?p->value1:p->value2;
 }
 
-static void Inc(Cell *p, MatrixVal Ma, guint32 inc)
+static void Inc(Cell *p, MatrixVal Ma, nat_uint32_t inc)
 {
     if (Ma)
         p->value1 += inc;
@@ -204,17 +206,17 @@ static void Inc(Cell *p, MatrixVal Ma, guint32 inc)
         p->value2 += inc;
 }
 
-static int Put(Matrix *matrix, MatrixVal Ma, float f, guint32 i, guint32 row)
+static int Put(Matrix *matrix, MatrixVal Ma, float f, nat_uint32_t i, nat_uint32_t row)
 {
     Cell *pointer;
-    guint32 v;
-    guint32 length;
+    nat_uint32_t v;
+    nat_uint32_t length;
 
     pointer = matrix->rows[row].cells;
     length = matrix->rows[row].length;
 
     if (f < MAXVAL) {
-	v = (guint32) (f * MAXDEC + 0.5f);
+	v = (nat_uint32_t) (f * MAXDEC + 0.5f);
 	if (Ma)
             pointer[i].value1 = v;
 	else
@@ -233,7 +235,7 @@ static int Put(Matrix *matrix, MatrixVal Ma, float f, guint32 i, guint32 row)
 	}
     }
     else {
-	v = (guint32) (((int) (f* (float) MAXDEC + 0.5f)) % ((guint32) MAXVAL * (guint32) MAXDEC));
+	v = (nat_uint32_t) (((int) (f* (float) MAXDEC + 0.5f)) % ((nat_uint32_t) MAXVAL * (nat_uint32_t) MAXDEC));
 #if DEBUG
 	printf("Matrix: double precision\n");
 #endif
@@ -256,7 +258,7 @@ static int Put(Matrix *matrix, MatrixVal Ma, float f, guint32 i, guint32 row)
 	    if (Ma) pointer[i].value2 = 0;
 	    else pointer[i].value1 = 0;
 	}
-	v = (guint32) (f / (float) MAXVAL);
+	v = (nat_uint32_t) (f / (float) MAXVAL);
 	if (Ma) pointer[i].value1 = v;
 	else pointer[i].value2 = v;
     }
@@ -264,10 +266,10 @@ static int Put(Matrix *matrix, MatrixVal Ma, float f, guint32 i, guint32 row)
 }
 
 static int PutValue(Matrix *matrix, MatrixVal Ma, float f, 
-		    guint32 row, guint32 column)
+		    nat_uint32_t row, nat_uint32_t column)
 {
     Cell *pointer;
-    guint32 i, length;
+    nat_uint32_t i, length;
     if (SearchItem(matrix, row, column, &pointer, &i, &length)) {
 	printf("PutValue: Error searching item\n");
 	return 1;
@@ -306,19 +308,19 @@ static int PutValue(Matrix *matrix, MatrixVal Ma, float f,
 int IncValue(Matrix *matrix, 
 	     MatrixVal Ma,
 	     float incfactor,
-	     guint32 row, guint32 column)
+	     nat_uint32_t row, nat_uint32_t column)
 {
     Cell *p;
-    guint32 i, l;
-    guint32 inc;
+    nat_uint32_t i, l;
+    nat_uint32_t inc;
     float f;
 
     if (SearchItem(matrix, row, column, &p, &i, &l)) {
-	g_warning("IncValue: Failed on Search Item (%d,%d)\n",row,column);
+        fprintf(stderr, "** WARNING ** IncValue: Failed on Search Item (%d,%d)\n",row,column);
 	return 1;
     } else {
 	if (i < l && (p[i].column == 0 || p[i].column == column)) {
-	    inc = (guint32) (incfactor * MAXDEC + 0.5f);
+	    inc = (nat_uint32_t) (incfactor * MAXDEC + 0.5f);
 	    p[i].column = column;
 	    if (Get(p+i, Ma) + inc < MAXVAL * MAXDEC) {
 		Inc(p+i, Ma, inc);
@@ -341,10 +343,10 @@ int IncValue(Matrix *matrix,
  * @todo discover what this does
  */
 float GetValue(Matrix *matrix, MatrixVal Ma,
-	       guint32 r, guint32 c)
+	       nat_uint32_t r, nat_uint32_t c)
 {
     Cell *p;
-    guint32 i, l;
+    nat_uint32_t i, l;
     float f;
     if (SearchItem(matrix, r, c, &p, &i, &l))
 	return 0.0f;
@@ -369,10 +371,10 @@ float GetValue(Matrix *matrix, MatrixVal Ma,
  *
  * @todo discover what this does
  */
-float GetRow(Matrix *matrix, MatrixVal Ma, guint32 r, guint32 *c, float *f)
+float GetRow(Matrix *matrix, MatrixVal Ma, nat_uint32_t r, nat_uint32_t *c, float *f)
 {
     Cell *p;
-    guint32 i, j, l;
+    nat_uint32_t i, j, l;
     float fm, total;
     if (r < 1 || r > matrix->Nrows)
 	return 0.0f;
@@ -402,11 +404,11 @@ float GetRow(Matrix *matrix, MatrixVal Ma, guint32 r, guint32 *c, float *f)
 
 /* Not used, it seems */
 #if 0
-static float GetRowMax(Matrix *matrix, MatrixVal Ma, guint32 r, 
-		       guint32 *c, float *f, guint32 max)
+static float GetRowMax(Matrix *matrix, MatrixVal Ma, nat_uint32_t r, 
+		       nat_uint32_t *c, float *f, nat_uint32_t max)
 {
     Cell *p;
-    guint32 i, j, k, l;
+    nat_uint32_t i, j, k, l;
     float fm, total;
     if (r < 1 || r > matrix->Nrows)
 	return 0.0f;
@@ -445,11 +447,11 @@ static float GetRowMax(Matrix *matrix, MatrixVal Ma, guint32 r,
 
 #if 0
 /* Not used, it seems */
-static float GetColumnMax(Matrix *matrix, MatrixVal Ma, guint32 c, 
-			  guint32 *r, float *f, guint32 max)
+static float GetColumnMax(Matrix *matrix, MatrixVal Ma, nat_uint32_t c, 
+			  nat_uint32_t *r, float *f, nat_uint32_t max)
 {
     Cell *p;
-    guint32 i, j, k, l;
+    nat_uint32_t i, j, k, l;
     float fm, total;
     if (c < 1 || c > matrix->Ncolumns)
 	return 0.0f;
@@ -493,12 +495,12 @@ static float GetColumnMax(Matrix *matrix, MatrixVal Ma, guint32 c,
  * 
  * @todo discover what this does
  */
-int GetPartialMatrix(Matrix *matrix, MatrixVal Ma, guint32 *r,
-		     guint32 *c, double *M, guint32 max)
+int GetPartialMatrix(Matrix *matrix, MatrixVal Ma, nat_uint32_t *r,
+		     nat_uint32_t *c, double *M, nat_uint32_t max)
 {
     Cell *p;
-    guint32 i, l, m, n;
-    guint32 *tmp;
+    nat_uint32_t i, l, m, n;
+    nat_uint32_t *tmp;
     tmp = c;
     while (*c > 0)
 	if (*c++ > matrix->Ncolumns)
@@ -517,7 +519,7 @@ int GetPartialMatrix(Matrix *matrix, MatrixVal Ma, guint32 *r,
 
 #if 1
 		Cell *x;
-		guint32 xx;
+		nat_uint32_t xx;
 		SearchItem(matrix, *r, *c, &x, &i, &xx);
 #else
 		while (i < l && p[i].column > 0 && p[i].column < *c) i++;
@@ -543,11 +545,11 @@ int GetPartialMatrix(Matrix *matrix, MatrixVal Ma, guint32 *r,
 
 /* Not used at the moment, it seems */
 #if 0
-static int GetConditionalMatrix(Matrix *matrix, MatrixVal Ma, guint32 *r, 
-				guint32 *c, float *M, guint32 max)
+static int GetConditionalMatrix(Matrix *matrix, MatrixVal Ma, nat_uint32_t *r, 
+				nat_uint32_t *c, float *M, nat_uint32_t max)
 {
     Cell *p;
-    guint32 i, l, *tmp, m, n;
+    nat_uint32_t i, l, *tmp, m, n;
     float f, pm;
     tmp = c;
     while (*c > 0)
@@ -598,7 +600,7 @@ static int GetConditionalMatrix(Matrix *matrix, MatrixVal Ma, guint32 *r,
 void ClearMatrix(Matrix *matrix, MatrixVal Ma)
 {
     Cell *p;
-    guint32 r, i, l;
+    nat_uint32_t r, i, l;
     for (r = 1; r <= matrix->Nrows; r++) {
 	p = matrix->rows[r].cells;
 	l = matrix->rows[r].length;
@@ -630,7 +632,7 @@ void ClearMatrix(Matrix *matrix, MatrixVal Ma)
 void CopyMatrix(Matrix *matrix,  MatrixVal Mdest)
 {
     Cell *p;
-    guint32 r, i, l;
+    nat_uint32_t r, i, l;
     for (r = 1; r <= matrix->Nrows; r++) {
 	p = matrix->rows[r].cells;
 	l = matrix->rows[r].length;
@@ -703,7 +705,7 @@ float MatrixTotal(Matrix *matrix, MatrixVal Ma)
 {
     Cell *p;
     float total, f;
-    guint32 r, i, l;
+    nat_uint32_t r, i, l;
     total = 0;
     for (r = 1; r <= matrix->Nrows; r++) {
 	p = matrix->rows[r].cells;
@@ -744,7 +746,7 @@ void MatrixEntropy(Matrix *matrix, MatrixVal Ma, double *h,
  {
     Cell *p;
     double f, *sumi, *sumj, sum;
-    guint32 r, i, l;
+    nat_uint32_t r, i, l;
     sum = 0.0f;
     // sumi = g_new(double, matrix->Nrows);
     sumi = (double*)malloc(sizeof(double)*matrix->Nrows);
@@ -813,7 +815,7 @@ void ColumnTotals(Matrix *matrix, MatrixVal Ma, float *cf)
 {
     Cell *p;
     float f;
-    guint32 r, i, l;
+    nat_uint32_t r, i, l;
     for (i = 1; i <= matrix->Ncolumns; i++)
 	cf[i] = 0.0f;
     for (r = 1; r <= matrix->Nrows; r++) {
@@ -837,10 +839,10 @@ void ColumnTotals(Matrix *matrix, MatrixVal Ma, float *cf)
  *
  * @return the memory used by matrix
  */
-guint32 BytesInUse(Matrix *matrix)
+nat_uint32_t BytesInUse(Matrix *matrix)
 {
-    guint32 size = 0;
-    guint32 i = 0;
+    nat_uint32_t size = 0;
+    nat_uint32_t i = 0;
 
     size = sizeof(Matrix) + sizeof(Row)*matrix->Nrows;
     for (i = 1; i <= matrix->Nrows; ++i) {
@@ -860,7 +862,7 @@ guint32 BytesInUse(Matrix *matrix)
 int SaveMatrix(Matrix *matrix, char *filename)
 {
     FILE *fd;
-    guint32 r, i;
+    nat_uint32_t r, i;
     
     fd = fopen(filename, "wb");
     if (!fd) return 1;
@@ -875,13 +877,13 @@ int SaveMatrix(Matrix *matrix, char *filename)
      */
 
     i = matrix->Nrows;
-    if (fwrite(&i, sizeof(i), 1, fd) != 1) return 1;
+    if (fwrite(&i, sizeof(nat_uint32_t), 1, fd) != 1) return 1;
     i = matrix->Ncolumns;
-    if (fwrite(&i, sizeof(i), 1, fd) != 1) return 1;
+    if (fwrite(&i, sizeof(nat_uint32_t), 1, fd) != 1) return 1;
 
     for (r = 1; r <= matrix->Nrows; ++r) {
 	i = matrix->rows[r].length;
-	if (fwrite(&i, sizeof(i), 1, fd) != 1) return 1;
+	if (fwrite(&i, sizeof(nat_uint32_t), 1, fd) != 1) return 1;
 	if (fwrite(matrix->rows[r].cells, sizeof(Cell), i, fd) != i) return 1;
     }
 
@@ -901,7 +903,7 @@ Matrix *LoadMatrix(char *filename)
 {
     Matrix *matrix;
     FILE *fd;
-    guint32 r, i;
+    nat_uint32_t r, i;
     
     fd = fopen(filename, "rb"); 
     if (!fd) {
@@ -925,11 +927,11 @@ Matrix *LoadMatrix(char *filename)
 	return NULL;
     }
 
-    if (fread(&matrix->Nrows, sizeof(guint32), 1, fd) != 1) {
+    if (fread(&matrix->Nrows, sizeof(nat_uint32_t), 1, fd) != 1) {
 	report_error("matrix.c: error loading number of rows");
 	return NULL;
     }
-    if (fread(&matrix->Ncolumns, sizeof(guint32), 1, fd) != 1) {
+    if (fread(&matrix->Ncolumns, sizeof(nat_uint32_t), 1, fd) != 1) {
 	report_error("matrix.c: error loading number of columns");
 	return NULL;
     }
@@ -942,7 +944,7 @@ Matrix *LoadMatrix(char *filename)
     }
 
     for (r = 1; r <= matrix->Nrows; ++r) {
-	if (fread(&i, sizeof(guint32), 1, fd) != 1) {
+	if (fread(&i, sizeof(nat_uint32_t), 1, fd) != 1) {
 	    /* FIXME: free previous rows */
 	    free(matrix->rows);
 	    free(matrix);
