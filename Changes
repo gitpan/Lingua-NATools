@@ -1,39 +1,61 @@
 
+0.7.0_02  Sat Mar 10 22:28:26 WET 2012
+   - Try to add libdir to ldconfig if possible.
+   - Fixed installation procedure when there is a libnatools in the
+     system.
+
+
 0.7.0_01  Wed Mar  7 15:12:23 WET 2012
- - Changed words module interface.
-   (less pointers of pointers of pointers)
- - Only UTF-8 support is available now.
- - ISO-8859-1 support droped.
- - Progressive removal of glib dependency.
-   (U32/U8/gboolean)
- - Fix some scripts that were failing with perl'ization.
- - Fixed bug when summing up PTDs.
+
+   - Changed words module interface --- less pointers of pointers of
+     pointers.
+   - Only UTF-8 support is available now.
+   - ISO-8859-1 support droped.
+   - Progressive removal of glib dependency  (U32/U8/gboolean).
+   - Fix some scripts that were failing with perl'ization.
+   - Fixed bug when summing up PTDs.
+
 
 0.6.4     Sat Feb 25 16:30:40 WET 2012
- - Parse::Yapp driving me crazy.
+
+   - Parse::Yapp driving me crazy.
+
 
 0.6.3     Fri Feb 24 21:14:34 WET 2012
- - Parse::Yapp is a run dependency.
+
+   - Parse::Yapp is a run dependency.
+
 
 0.6.2     Sun Feb 19 21:19:29 WET 2012
- - Parse::Yapp is a build dependency.
+
+   - Parse::Yapp is a build dependency.
+
 
 0.6.1     Tue Feb 14 21:45:19 WET 2012
- - Fixed dependency on Capture::Tiny.
+
+   - Fixed dependency on Capture::Tiny.
+
 
 0.6.0     Fri Feb 10 12:26:01 WET 2012
- - releasing as stable.
+
+   - releasing as stable.
+
 
 0.6.0_3   Fri Feb 10 12:26:01 WET 2012
- - fix call to yapp command line.
+
+   - fix call to yapp command line.
+
 
 0.6.0_2   Wed Feb  8 14:10:11 WET 2012
- - Fixed dependency version on Config::AutoConf.
+
+   - Fixed dependency version on Config::AutoConf.
+
 
 0.6.0_1 - Tue Feb  7 14:10:11 WET 2012 
- - Yet again, suggested to remove all nat-* files in your path before
-   installing.
- - Autoconf substituted by Perl.
+
+   - Yet again, suggested to remove all nat-* files in your path
+     before installing.
+   - Autoconf substituted by Perl.
 
 Overview of changes in NATools 0.5.9
 ====================================

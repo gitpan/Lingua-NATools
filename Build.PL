@@ -94,9 +94,7 @@ my $builder = MyBuilder->new
                       't/bin/*.o', 't/bin/*.exe',
                       't/bin/corpus', 't/bin/words',
                       'Lingua-NATools-*',
-                      '_build/objects',
-                      '_build/apps',
-                      '_build/lib',
+                      '_build',
                      ],
   );
 

@@ -84,6 +84,8 @@ sub _CC_ {
     if (!$result) {
         print STDERR $stderr;
         print STDOUT $stdout;
+    } else {
+        print LOG $stdout;
     }
 }
 
@@ -93,6 +95,8 @@ sub _LD_ {
     if (!$result) {
         print STDERR $stderr;
         print STDOUT $stdout;
+    } else {
+        print LOG $stdout;
     }
 }
 
@@ -143,7 +147,21 @@ sub ACTION_install {
     # Run ldconfig if root
     if ($^O =~ /linux/ && $ENV{USER} eq 'root') {
         my $ldconfig = Config::AutoConf->check_prog("ldconfig");
-         system $ldconfig if -x $ldconfig;
+
+        my $libdir = $self->notes('libdir');
+
+        my $found = 0;
+        # 1. check if libdir is available
+        my $lines = `$ldconfig -v`;
+        for my $line (split /\n/, $lines) {
+            $found++ if $line =~ /^$libdir:/;
+        }
+        if (!$found && open X, ">>", '/etc/ld.so.conf') {
+            print X "$libdir\n";
+            close X;
+        }
+
+        system $ldconfig if -x $ldconfig;
     }
 }
 
@@ -378,6 +396,9 @@ sub _set_libbuilder {
     $libbuilder->{config}{ccflags} =~ s/-arch \S+//g;
     $libbuilder->{config}{lddlflags} =~ s/-arch \S+//g;
     $libbuilder->{config}{ldflags} =~ s/-arch \S+//g;
+
+    $libbuilder->{config}{lddlflags} =~ s{ -L\s*/usr/local/lib(?:$|\b)}{};
+    $libbuilder->{config}{ldflags} =~ s{ -L\s*/usr/local/lib(?:$|\b)}{};
 
     $self->notes(libbuilder => $libbuilder);
 }
