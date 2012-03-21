@@ -1,5 +1,11 @@
+0.7.0     Fri Mar 16 17:13:47 WET 2012
+
+   - Releasing as stable.
+   - Removing minor warnings during make test.
+
 
 0.7.0_02  Sat Mar 10 22:28:26 WET 2012
+
    - Try to add libdir to ldconfig if possible.
    - Fixed installation procedure when there is a libnatools in the
      system.

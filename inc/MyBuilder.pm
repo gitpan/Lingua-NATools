@@ -85,6 +85,7 @@ sub _CC_ {
         print STDERR $stderr;
         print STDOUT $stdout;
     } else {
+        no warnings;
         print LOG $stdout;
     }
 }
@@ -96,6 +97,7 @@ sub _LD_ {
         print STDERR $stderr;
         print STDOUT $stdout;
     } else {
+        no warnings;
         print LOG $stdout;
     }
 }
