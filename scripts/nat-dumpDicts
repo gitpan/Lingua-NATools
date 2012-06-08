@@ -138,6 +138,8 @@ sub dump_dictionary {
 sub _quotemeta {
     my $string = shift;
     $string =~ s/\\/\\\\/g;
+    $string =~ s/\$/\\\$/g;
+    $string =~ s/\@/\\\@/g;
     $string =~ s/"/\\"/g;
     return $string;
 }

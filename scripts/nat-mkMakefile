@@ -144,6 +144,9 @@ sub create_sqlite {
 EO
 }
 
+
+=encoding UTF-8
+
 =head1 NAME
 
 nat-mkMakefile - generates a pmakefile to be used by Makefile::Parallel

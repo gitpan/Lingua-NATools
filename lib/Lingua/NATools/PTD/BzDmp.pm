@@ -26,6 +26,8 @@ our $VERSION = '1.0';
 use IO::Compress::Bzip2     qw(bzip2 $Bzip2Error);
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 
+=encoding UTF-8
+
 =head1 NAME
 
 Lingua::NATools::PTD::BzDmp - Sub-module to handle PTD bzipped files in Dumper Format

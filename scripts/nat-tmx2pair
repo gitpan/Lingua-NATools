@@ -68,6 +68,8 @@ sub usage {
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-tmx2pair - splits a TMX file into several files, one for each language

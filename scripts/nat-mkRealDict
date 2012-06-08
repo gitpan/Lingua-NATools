@@ -39,6 +39,8 @@ for my $k (keys %$data) {
 
 print Dumper($data);
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-mkRealDict - used to create a dictionary similar to a PTD based on

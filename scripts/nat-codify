@@ -97,6 +97,8 @@ if ($tmx) {
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-codify - Command line tool to codify corpora

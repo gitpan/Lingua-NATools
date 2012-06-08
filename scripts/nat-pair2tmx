@@ -69,6 +69,8 @@ sub n {
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-pair2tmx - join two files in NATools input format into a TMX file.

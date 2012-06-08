@@ -140,7 +140,7 @@ for my $w (keys %$DIC2) {
 $tsDic->save();
 $tsDic->close();
 
-
+=encoding UTF-8
 
 =head1 NAME
 

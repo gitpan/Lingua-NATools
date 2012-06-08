@@ -20,10 +20,14 @@ package Lingua::NATools::PTD::SQLite;
 # Boston, MA 02111-1307, USA.                                      #
 #------------------------------------------------------------------#
 
+use strict;
+use warnings;
+
 use base 'Lingua::NATools::PTD';
 our $VERSION = '1.0';
 use DBI;
 
+=encoding UTF-8
 
 =head1 NAME
 
@@ -61,6 +65,7 @@ sub new {
                 dbh => $dbh,
                 get_meta => $dbh->prepare("SELECT v FROM meta WHERE k = ?;"),
                 get_occs => $dbh->prepare("SELECT occ FROM occs WHERE w = ?;"),
+                exists   => $dbh->prepare("SELECT w FROM trans WHERE w = ?;"),
                };
     bless $self => $class # amen
 }
@@ -101,6 +106,16 @@ sub words {
     my @row;
     while (@row = $sth->fetchrow_array()) { push @answer, $row[0] };
     return @answer;
+}
+
+sub exists {
+    my ($self, $word) = @_;
+    $self->{exists}->execute($word);
+    if ($self->{exists}->fetchrow_array()) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 sub _calculate_sizes {

@@ -77,6 +77,8 @@ if ($tmx) {
 }
 
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-sentenec-align - simple interface for Vanilla aligner.

@@ -73,6 +73,8 @@ print STDERR "Moving file...\n";
 `mv ${file}_ $file`;
 
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-ngramsIdx - Indexes a ngrams SQLite file

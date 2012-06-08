@@ -26,6 +26,8 @@ our $VERSION = '1.0';
 use IO::Compress::Xz     qw(xz   $XzError);
 use IO::Uncompress::UnXz qw(unxz $UnXzError);
 
+=encoding UTF-8
+
 =head1 NAME
 
 Lingua::NATools::PTD::XzDmp - Sub-module to handle PTD xz files in Dumper Format

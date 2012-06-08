@@ -26,7 +26,7 @@ use XML::TMX::Reader;
 use Lingua::PT::PLNbase;
 use Lingua::Identify qw/:all/;
 
-our $VERSION = '0.7.0';
+our $VERSION = '0.7.1';
 our $DEBUG = 0;
 
 use parent 'DynaLoader';
@@ -1056,7 +1056,13 @@ sub tmx2files {
         printf STDERR "\rExporting TMX (%d TU) ...", $CNT if $conf->{verbose} && !($CNT % 1000);
 
         # Temporary hack -- XML::TMX::Reader should normalize languages
-        $tu->{lc $_} = $tu->{$_} for (keys %$tu);
+        for (keys %$tu) {
+            if (/^-/) {
+                delete $tu->{$_}
+            } else {
+                $tu->{lc $_} = $tu->{$_}{-seg}
+            }
+        }
 
         if (exists($tu->{$l1}) && exists($tu->{$l2})) {
             $CNT++;
@@ -1071,7 +1077,7 @@ sub tmx2files {
             print F2 "$t2\n\$\n";
         }
     };
-    $reader->for_tu2( $processor, tags => 0);
+    $reader->for_tu( $processor, tags => 0);
     printf STDERR "\rExported TMX (%d TU)\n", $CNT if $conf->{verbose};
     close F1;
     close F2;
@@ -1176,9 +1182,9 @@ sentences on both files differ.
 
 Example of invocation:
 
-  $pcorpus -> codify({ignore_case => 1},
-                     "/var/corpora/Europarl.PT",
-                     "/var/corpora/Europarl.EN");
+  $pcorpus->codify({ignore_case => 1},
+                   "/var/corpora/Europarl.PT",
+                   "/var/corpora/Europarl.EN");
 
 
 =head2 C<count_sentences>
@@ -1216,7 +1222,7 @@ method should be called to re-index all these indexes in a common one.
 Just call it in the repository object. If needed, you can supply a
 true argument so the function will be verbose.
 
-  $pcorpus -> index_invindexes;
+  $pcorpus->index_invindexes;
 
 
 =head2 C<index_ngrams>
@@ -1224,7 +1230,7 @@ true argument so the function will be verbose.
 This method calculates ngrams (bigrams, trigrams and tetragrams) for
 both languages and ALL chunks.
 
-  $pcorpus -> index_ngrams;
+  $pcorpus->index_ngrams;
 
 
 =head2 C<split_corpus_simple>
@@ -1238,11 +1244,11 @@ the two text files with the text to be tokenized. The hash should
 include, at least, the number of chunks, and the chunk currently being
 processed.
 
-  $pcorpus -> split_corpus_simple({tokenize => 0,
-                                   verbose => 1,
-                                   chunk => 1, nrchunks => 16},
-                                      "/var/corpora/EuroParl.PT",
-                                      "/var/corpora/EuroParl.EN");
+  $pcorpus->split_corpus_simple({tokenize => 0,
+                                 verbose => 1,
+                                 chunk => 1, nrchunks => 16},
+                                    "/var/corpora/EuroParl.PT",
+                                    "/var/corpora/EuroParl.EN");
 
 
 =head2 C<run_initmat>
@@ -1290,7 +1296,7 @@ Returns the time used to run the command.
 This method will re-align all chunks in the corpora repository. It
 will not re-encode them, just re-align.
 
-  $pcorpus -> align_all;
+  $pcorpus->align_all;
 
 
 =head2 C<align_chunk>
@@ -1301,7 +1307,7 @@ will not re-encode it, just re-align.
 You need to give a first argument with the chunk number to be aligned,
 and a optional second argument stating if you want verose output.
 
-  $pcorpus -> align_chunk(3,0);
+  $pcorpus->align_chunk(3,0);
 
 
 =head2 C<run_dict_add>
@@ -1312,7 +1318,7 @@ method should not be called directly. Or, if really needed, call it
 for all chunks, one at a time, starting with the first.
 
   for (1..10) {
-    $pcorpus -> run_dict_add($_)
+    $pcorpus->run_dict_add($_)
   }
 
 
@@ -1324,7 +1330,7 @@ method is called directly in the object with an optional argument to
 force verbose output if needed. This method will call C<run_dict_add>
 for each chunk.
 
-  $pcorpus -> make_dict;
+  $pcorpus->make_dict;
 
 
 =head2 C<pre_chunk>
@@ -1342,7 +1348,7 @@ identifier.
 This function calls nat-dumpDicts command to dump a PTD for the current
 corpus.
 
-  $self -> dump_ptd( );
+  $self->dump_ptd( );
 
 
 =head2 C<time_command>

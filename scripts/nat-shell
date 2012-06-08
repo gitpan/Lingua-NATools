@@ -20,6 +20,8 @@ if ($h) {
   exit;
 }
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-shell - A shell interface to NATools corpora alignment

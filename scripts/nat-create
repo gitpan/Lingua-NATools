@@ -142,6 +142,8 @@ $self->{conf}->write($self->{conf}->param("cfg"));
 
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-create - Command line tool to create NATools Corpora Objects

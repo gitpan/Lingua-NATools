@@ -47,10 +47,12 @@ our %command =
    toDmpBz   => [\&toDmpBz   => 'Converts a PTD to Bzipped Dumper format.'],
    toSQLite  => [\&toSQLite  => 'Converts a PTD to SQLite format.'],
    'grep'    => [\&grep      => 'Lists entries matching a specific pattern.'],
+   ucts      => [\&ucts      => 'Create unambiguous-concept translation sets.'],
+   bws       => [\&bws       => 'Create bi-words sets.'],
   );
 
 
-
+binmode STDERR, ":utf8";
 
 ($opts, @args) = _process_args(@ARGV);
 
@@ -453,8 +455,7 @@ sub compose {
         _DEBUG_ "composing...";
         for my $word ($first->words) {
             for my $trans ($first->trans($word)) {
-                next unless exists $second->{$trans};
-
+                next unless $second->exists($trans);
                 $new->{$word}{count} = $first->count($word);
                 for my $ttrans ($second->trans($trans)) {
                     $new->{$word}{trans}{$ttrans} +=
@@ -941,6 +942,84 @@ sub __subset {
     return 1;
 }
 
+=head2 ucts
+
+Create unambiguous-concept traslation sets.
+
+  ptd-nat ucts [-m=<number>] [-M=<number>] [-p=<probabilty>] [-P=<probability>] <ptd-filename> <ptd-filename>
+
+The following options can be used:
+
+=over 4
+
+=item C<-m=n>
+
+Mininum number of occurences of each token. C<n> must be an
+integer (default: 10).
+
+=item C<-M=n>
+
+Manixum number of occurences of each token. C<n> must be an
+integer (default: 100).
+
+=item C<-p=p>
+
+Minimum probabilty for translation. C<p> must be a probability
+in the interval [0,1] (default: 0.2).
+
+=item C<-P=p>
+
+Minimum probabilty for the inverse translations. C<p> must be a
+probability in the interval [0,1] (default: 0.8).
+
+=item C<-r=0|1>
+
+Print rank (default: 0).
+
+=back
+
+=cut
+
+sub ucts {
+    my ($my_opts, $fileA, $fileB, @more) = @_;
+
+    Lingua::NATools::PTD::ucts($fileA, $fileB, %$my_opts, pp=>1);
+}
+
+=head2 bws
+
+Create bi-words sets.
+
+  ptd-nat bws [-m=<number>] [-p=<probabilty>] <ptd-filename> <ptd-filename>
+
+The following options are available:
+
+=over 4
+
+=item C<-m=n>
+
+Mininum number of occurences of each token. C<n> must be an
+integer (default: 10).
+
+=item C<-p=p>
+
+Minimum probabilty for translation. C<p> must be a probability
+in the interval [0,1] (default: 0.4).
+
+=item C<-r=0|1>
+
+Print rank (default: 0).
+
+=back
+
+=cut
+
+sub bws {
+    my ($my_opts, $fileA, $fileB, @more) = @_;
+
+    Lingua::NATools::PTD::bws($fileA, $fileB, %$my_opts, pp=>1);
+}
+
 =head1 SEE ALSO
 
 NATools, perl(1)
@@ -949,8 +1028,10 @@ NATools, perl(1)
 
 Alberto Manuel Brandão Simões, E<lt>ambs@cpan.orgE<gt>
 
+Nuno Alexandre Carvalho, E<lt>smash@cpan.orgE<gt>
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010-2011 by Alberto Manuel Brandão Simões
+Copyright (C) 2010-2012 by Natura Project
 
 =cut

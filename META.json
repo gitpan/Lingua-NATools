@@ -4,7 +4,7 @@
       "Alberto SimÃµes <ambs@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120630",
+   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -39,6 +39,7 @@
       },
       "runtime" : {
          "requires" : {
+            "CGI" : "0",
             "Compress::Zlib" : "1.16",
             "DBD::SQLite" : "1.30",
             "DBI" : "0",
@@ -71,14 +72,14 @@
             "Time::HiRes" : "1.2",
             "URI::Escape" : "3.26",
             "XML::DT" : "0.44",
-            "XML::TMX" : "0.16"
+            "XML::TMX" : "0.21"
          }
       }
    },
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.7.0"
+         "version" : "v0.7.1"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -147,5 +148,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.7.0"
+   "version" : "v0.7.1"
 }

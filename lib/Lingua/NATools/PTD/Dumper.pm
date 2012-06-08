@@ -23,6 +23,8 @@ package Lingua::NATools::PTD::Dumper;
 use base 'Lingua::NATools::PTD';
 our $VERSION = '1.0';
 
+=encoding UTF-8
+
 =head1 NAME
 
 Lingua::NATools::PTD::Dumper - Sub-module to handle PTD files in Dumper Format
@@ -62,7 +64,6 @@ sub _save {
 
     open OUT, ">:utf8", $filename or return 0;
     select OUT;
-    print "use utf8;";
     $self->dump;
     close OUT;
 

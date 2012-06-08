@@ -42,6 +42,8 @@ sub usage {
 1;
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 nat-rank - classifies each parallel corpus aligned sentence

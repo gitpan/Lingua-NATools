@@ -27,7 +27,7 @@ my $builder = MyBuilder->new
                 'File::Copy'           => '0',
                 'Lingua::PT::PLNbase'  => '0.17',
                 'IO::Socket'           => '1.28',
-                'XML::TMX'             => '0.16',
+                'XML::TMX'             => '0.21',
                 'XML::DT'              => '0.44',
                 'Compress::Zlib'       => '1.16',
                 'Test::Harness'        => '2.26',
@@ -58,6 +58,7 @@ my $builder = MyBuilder->new
                 'IO::Compress::Xz'     => '2.049',
                 'List::MoreUtils'      => '0',
                 'Parse::Yapp::Driver'  => '1.05',
+                'CGI'                  => '0',
                },
    configure_requires => {
                           'Config::AutoConf'   => '0.19',

@@ -1,3 +1,9 @@
+
+0.7.1     Fri Jun  8 17:50:41 WEST 2012 - r11221
+
+   - Fix some POD issues.
+   - Support new XML::TMX API.
+
 0.7.0     Fri Mar 16 17:13:47 WET 2012
 
    - Releasing as stable.
