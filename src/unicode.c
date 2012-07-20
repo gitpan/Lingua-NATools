@@ -226,3 +226,28 @@ nat_string_t*  nat_string_append(nat_string_t *str, const wchar_t *format, ...) 
     str->str[str->length] = L'\0';
     return str;
 }
+
+#ifdef MISSES_WCSDUP
+wchar_t *wcsdup(const wchar_t *wstr) {
+    wchar_t *mem;
+    mem = xmalloc(wcslen(wstr));
+    if (!mem)
+        report_error("error allocating memory");
+    wcscpy(mem, wstr);
+    return mem;
+}
+#endif
+
+/* 
+--#ifdef _WIN32
+mem = _wcsdup(wstr);
+--#elif sun
+mem = wsdup(wstr);
+--#elif defined(__APPLE__) && defined(__MACH__)
+mem = xmalloc(wcslen(wstr));
+if (mem != NULL)
+wcscpy(mem, wstr);
+--#else
+mem = wcsdup(wstr);
+--#endif
+*/

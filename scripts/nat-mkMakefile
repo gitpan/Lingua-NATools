@@ -11,7 +11,7 @@ my $prefix = $Lingua::NATools::LIBPREFIX;
 # Hope they maintain this...
 my $rules_prefix = catfile $prefix =>"NATools";
 
-our ($id, $h, $tokenize, $full, $i, $ngrams, $terminology, $utf8, $csize);
+our ($id, $h, $tokenize, $full, $i, $ngrams, $terminology, $utf8, $csize, $langs);
 
 $terminology = 1 && $ngrams = 1 if $full;
 
@@ -39,6 +39,8 @@ if ($#ARGV == 0 && $ARGV[0] =~ m!tmx$!) {
 } else {
     usage();
 }
+
+$source = "$langs $source" if $langs;
 
 my $makefile;
 $makefile .= $_ while <DATA>;

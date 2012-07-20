@@ -26,6 +26,9 @@
  * @brief Header file for unicode-aware methods
  */
 
+#ifdef MISSES_WCSDUP
+wchar_t *wcsdup(const wchar_t *string);
+#endif
 
 /* ------ Strings ------- */
 

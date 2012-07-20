@@ -1,3 +1,6 @@
+0.7.2     Fri Jul 20 16:51:09 WEST 2012 - r11286
+
+   - implement wcsdup for Mac OS X before Lion
 
 0.7.1     Fri Jun  8 17:50:41 WEST 2012 - r11221
 

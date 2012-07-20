@@ -6,6 +6,7 @@ use File::Spec::Functions 'catdir';
 use Capture::Tiny 'capture';
 use MyBuilder;
 
+
 my ($a,$b,$version) = capture {
     `$^X -MNAT -e 'print NAT->VERSION'`;
 };
@@ -137,6 +138,16 @@ $builder->check_berkeley_db($CAC, "4.3");
 if ($DEBUG) {
     $CAC->msg_notice("LIBS: "  ,$builder->notes('libs'));
     $CAC->msg_notice("CFLAGS: ",$builder->notes('cflags'));
+}
+
+# check snow leopard without wcsdup
+$builder->notes('have_wcsdup' => 1);
+if ($^O eq 'darwin') {
+  require POSIX;
+  my (undef, undef, $release) = POSIX::uname();
+  if ($release =~ /^(\d+)/ and $1 < 11) {
+      $builder->notes('have_wcsdup' => 0);
+  }
 }
 
 $builder->compute_lib_dir();

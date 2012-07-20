@@ -236,6 +236,7 @@ sub ACTION_create_objects {
     mkpath "_build/objects" unless -d "_build/objects";
 
     my $cflags = $self->notes('cflags');
+    $cflags .= " -DMISSES_WCSDUP" unless $self->notes('have_wcsdup');
     $cflags .= " -g -Wall -Werror" if $pedantic;
 
     for my $object (keys %o_deps) {
