@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include "standard.h"
+#include "unicode.h"
 
 /**
  * @file
@@ -76,7 +77,7 @@ void report_error(const char *format, ...)
  */
 wchar_t *capital_dup(const wchar_t* str)
 {
-    wchar_t *capital = wcsdup(str);
+    wchar_t *capital = wcs_dup(str);
     capital[0] = towupper(capital[0]);
     return capital;
 }
@@ -89,7 +90,7 @@ wchar_t *capital_dup(const wchar_t* str)
  */
 wchar_t *uppercase_dup(const wchar_t* str)
 {
-    wchar_t *uppercase = wcsdup(str);
+    wchar_t *uppercase = wcs_dup(str);
     wchar_t *ptr = uppercase;
     while (*ptr) {
 	*ptr = towupper(*ptr);

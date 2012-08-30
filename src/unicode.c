@@ -9,7 +9,7 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * MERCHNTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
@@ -228,26 +228,14 @@ nat_string_t*  nat_string_append(nat_string_t *str, const wchar_t *format, ...) 
 }
 
 #ifdef MISSES_WCSDUP
-wchar_t *wcsdup(const wchar_t *wstr) {
+wchar_t *wcs_dup(const wchar_t *wstr) {
     wchar_t *mem;
-    mem = xmalloc(wcslen(wstr));
+    mem = (wchar_t*) calloc(wcslen(wstr) + 1, sizeof(wchar_t));
     if (!mem)
         report_error("error allocating memory");
     wcscpy(mem, wstr);
     return mem;
 }
+#else
+wchar_t *wcs_dup(const wchar_t *wstr) { return wcsdup(wstr); }
 #endif
-
-/* 
---#ifdef _WIN32
-mem = _wcsdup(wstr);
---#elif sun
-mem = wsdup(wstr);
---#elif defined(__APPLE__) && defined(__MACH__)
-mem = xmalloc(wcslen(wstr));
-if (mem != NULL)
-wcscpy(mem, wstr);
---#else
-mem = wcsdup(wstr);
---#endif
-*/

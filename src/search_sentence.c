@@ -67,7 +67,7 @@ static void print_sentence(Corpus *crp, Words *W,
 	    } else if (x[i].flags & 0x2) {
 		word = capital_dup(word);
 	    } else {
-		word = wcsdup(word);
+		word = wcs_dup(word);
 	    }
 	    wprintf(L"%ls ", word);
 	    free(word);

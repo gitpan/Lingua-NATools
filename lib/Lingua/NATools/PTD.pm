@@ -388,20 +388,14 @@ sub subtractDomain {
 
 Domain restrict function: interface is similar to subtractDomain function
 
-This method restricts the domain of a PTD to a set of elements. 
-This set can be defines as another PTD (domain is
-used), as a Perl array reference, as a Perl hash reference (domain is
-used) or as a Perl array (not reference). Returns the dictionary after
-domain restriction takes place.
+This method restricts the domain of a PTD to a set of elements.  This
+set can be defines as another PTD (domain is used), as a Perl array
+reference, as a Perl hash reference (domain is used) or as a Perl
+array (not reference). Returns the dictionary after domain restriction
+takes place.
 
-  # removes portuguese articles from the dictionary
-  $ptd->subtractDomain( qw.o a os as. );
-
-  # removes a set of stop words from the dictionary
-  $ptd->subtractDomain( \@stopWords );
-
-  # removes the words present on other_ptd from ptd
-  $ptd->subtractDomain( $other_ptd );
+  # restrict the dictionary to a set of words
+  $ptd->restrictDomain( \@someWords );
 
 =cut
 

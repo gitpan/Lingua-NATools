@@ -52,7 +52,7 @@ my %lib_deps = (
                 'parseini.o'   => ['parseini.c', 'parseini.h'],
                 'srvshared.o'  => ['srvshared.c', 'srvshared.h'],
                 'ngramidx.o'   => ['ngramidx.c', 'ngramidx.h'],
-                'unicode.o'      => ['unicode.c', 'unicode.h'],
+                'unicode.o'    => ['unicode.c', 'unicode.h'],
              );
 
 my %o_deps = (
@@ -335,6 +335,7 @@ sub ACTION_create_test_binaries {
     my $libbuilder = $self->notes('libbuilder');
 
     my $cflags = $self->notes('cflags');
+    $cflags .= " -DMISSES_WCSDUP" unless $self->notes('have_wcsdup');
     $cflags .= " -g -Wall -Werror" if $pedantic;
 
     my $libs = join(" ",
@@ -428,6 +429,7 @@ sub ACTION_compile_xscode {
     my $ofile = catfile "xs","NATools.o";
     if (!$self->up_to_date($cfile, $ofile)) {
         my $cflags = $self->notes('cflags');
+        $cflags .= " -DMISSES_WCSDUP" unless $self->notes('have_wcsdup');
         $cflags .= " -g -Wall -Werror" if $pedantic;
 
         _LOG_ "  [CC] natools.c";

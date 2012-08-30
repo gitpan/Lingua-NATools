@@ -98,7 +98,7 @@ static int AddSentence(wchar_t **sen, unsigned long len,
         
 	if (wcslen(*sen) >= MAXWORDLEN) {
 	    fprintf(stderr, "**WARNING** Truncating word '%ls'\n", *sen);
-            (*sen)[MAXWORDLEN - 1]='\0';
+            (*sen)[MAXWORDLEN - 1] = L'\0';
 	}
 
         wid = words_add_word(wl, my_lowercase(*sen, ignore_case));
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
     PartialCounts partials1, partials2;
 
-    extern char *optarg;
+    // extern char *optarg;
     extern int optind;
     int c;
 

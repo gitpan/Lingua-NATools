@@ -30,6 +30,8 @@
 
 #include <glib.h>
 
+#include "unicode.h"
+
 /**
  * @file
  * @brief Auxiliary data structure functions to collect words
@@ -281,7 +283,7 @@ static WordLstNode* words_add_full_(Words *w, WordLstNode* tree, nat_uint32_t id
 Words* words_add_full(Words* list, nat_uint32_t id,
                       nat_uint32_t count, const wchar_t* string)
 {
-    wchar_t *str = wcsdup(string);
+    wchar_t *str = wcs_dup(string);
     list->tree = words_add_full_(list, list->tree, id, count, str);
     list->count++;              /* we hope this is not called for two equal strings */
     list->occurrences+=count;
@@ -327,7 +329,7 @@ Words* words_real_load_(const char *filename, nat_boolean_t quick)
 
     if (!quick) {
         WordLstNode *cell = g_new(WordLstNode, 1);
-        cell->string = wcsdup(L"(none)"); 
+        cell->string = wcs_dup(L"(none)"); 
         tree->idx[1] = cell;       // FIXME: e o 0 ?
     }
     

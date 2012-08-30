@@ -306,7 +306,7 @@ int main(int argc, char **argv)
     double t;
     int Nsteps, step;
 
-    extern char *optarg;
+    // extern char *optarg;
     extern int optind;
     int c;
 

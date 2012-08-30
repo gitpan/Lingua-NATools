@@ -34,7 +34,7 @@ int main(void) {
 	fgetws(buff, 100, fd);
 	chomp(buff);
 	if (!feof(fd)) {
-	    words_add_word(lst, wcsdup(buff));
+	    words_add_word(lst, wcs_dup(buff));
 	}
     }
     fclose(fd);

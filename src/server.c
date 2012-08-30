@@ -183,7 +183,7 @@ void dump_dict_n(int fd, wchar_t* word, nat_int_t dir, CorpusInfo* crp) {
 
     S = (dir > 0) ?  crp->SourceLex : crp->TargetLex;
     wid = atoi((char*)word); // this should just work
-    w = wcsdup(words_get_by_id(S, wid));
+    w = wcs_dup(words_get_by_id(S, wid));
     dump_dict_full(fd, sbuf, wid, dir, crp);
     free(w);
 }

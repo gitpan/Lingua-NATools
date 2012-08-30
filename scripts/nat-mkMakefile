@@ -32,7 +32,7 @@ my $home=$ENV{HOME};
 $id ||= "ALIGNED";
 my $source = "";
 
-if ($#ARGV == 0 && $ARGV[0] =~ m!tmx$!) {
+if ($#ARGV == 0 && $ARGV[0] =~ m!tmxt?$!) {
     $source = "-tmx $ARGV[0]";
 } elsif ($#ARGV == 1) {
     $source = join(" ",@ARGV);
@@ -40,7 +40,7 @@ if ($#ARGV == 0 && $ARGV[0] =~ m!tmx$!) {
     usage();
 }
 
-$source = "$langs $source" if $langs;
+$source = "-langs=$langs $source" if $langs;
 
 my $makefile;
 $makefile .= $_ while <DATA>;

@@ -184,7 +184,7 @@ int main(int argc, char **argv)
     nat_uint32_t total1, total2;
     nat_boolean_t quiet = FALSE;
 
-    extern char *optarg;
+    // extern char *optarg;
     extern int optind;
     int c;
     

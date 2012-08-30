@@ -75,7 +75,8 @@ SvToWChar(SV* arg)
         // UTF8 to wide char mapping
         STRLEN len;
         while (*src) {
-            *dst++ = utf8_to_uvuni(src, &len);
+            // *dst++ = utf8_to_uvuni(src, &len);
+            *dst++ = utf8_to_uvuni_buf(src, src + strlen((char*)src), &len);
             src += len;
         }
     } else {
@@ -434,10 +435,10 @@ wlgetbyid(id, word)
          wchar_t* str;
    CODE:
          if (id > MAXDICS || id < 0 || !wls[id]) {
-	     str = wcsdup(L"");
+	     str = wcs_dup(L"");
          } else {
 	     str = words_get_by_id(wls[id], word);
-	     if (!str) str = wcsdup(L"(none)");
+	     if (!str) str = wcs_dup(L"(none)");
 	 }
          RETVAL = str;
           /*   CLEANUP: free(str);  */ /* or similar call to free the memory */
@@ -472,7 +473,7 @@ wladdword(id, word)
          if (id > MAXDICS || id < 0 || !wls[id]) {
 	     wid = 0;
          } else {
-	     wid = words_add_word_and_index(wls[id], wcsdup(word));
+	     wid = words_add_word_and_index(wls[id], wcs_dup(word));
 	 }
          RETVAL = wid;
    OUTPUT:
@@ -927,7 +928,7 @@ corpus_info_ptd_by_word(dir, word)
 	    prob = 0.0;
 	    twid = dictionary_get_id(D, wid, j);
 	    if (twid) {
-                SV* sv_tword;
+                SV* sv_tword = NULL;
 		prob = dictionary_get_val(D, wid, j);
 		tword = words_get_by_id(T, twid);
                 if (!tword) { fprintf(stderr, "Id: %d\n", twid); }

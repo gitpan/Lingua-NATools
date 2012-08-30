@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include "natlexicon.h"
+#include "unicode.h"
 
 /**
  * @file
@@ -74,7 +75,7 @@ wchar_t *natlexicon_word_from_id(NATLexicon *lexicon, nat_uint32_t id)
 {
     nat_uint32_t offset;
     if (id == lexicon->count-1) {
-	return wcsdup(L"(null)");
+	return wcs_dup(L"(null)");
     }
     offset = lexicon->cells[id].offset;
     if (lexicon->cells[id].id != id) {

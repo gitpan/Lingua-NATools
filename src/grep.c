@@ -67,7 +67,7 @@ static int corpus_print_sentence(const char* filename,
 	} else if (ptr->flags & 0x2) {
 	    word = capital_dup(word);
 	} else {
-	    word = wcsdup(word);
+	    word = wcs_dup(word);
 	}
 	printf("%ls ", word);
 	free(word);

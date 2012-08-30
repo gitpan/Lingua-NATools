@@ -69,7 +69,7 @@ char *convert_sentence(Words *W, CorpusCell *sentence) {
     	} else if (ptr->flags & 0x2) {
     	    word = capital_dup(word);
     	} else {
-    	    word = wcsdup(word);
+    	    word = wcs_dup(word);
     	}
         g_string_append_printf(str, "%ls ", word);
     	g_free(word);
@@ -289,7 +289,7 @@ GSList* dump_conc(int fd, CorpusInfo *corpus, int direction,
 
     		if (words[j][0] == '#' && iswdigit(words[j][1])) {
     		    swscanf(words[j], L"#%d", &total);
-    		    total = total<0?20:(total>1000?1000:total);
+    		    total = total>1000?1000:total;
     		    wids[j-2] = 0;
     		    break;
     		} else if (wcscmp(words[j], L"<=>") == 0 || wcscmp(words[j], L"<->") == 0) {

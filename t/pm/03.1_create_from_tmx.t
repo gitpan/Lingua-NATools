@@ -23,10 +23,10 @@ END {
 }
 
 
-capture { `scripts/nat-pair2tmx t/input/PT-tok PT t/input/EN-tok EN > t/PT-EN.tmx` };
+capture { `$^X scripts/nat-pair2tmx t/input/PT-tok PT t/input/EN-tok EN > t/PT-EN.tmx` };
 ok -f 't/PT-EN.tmx';
 
-capture { `scripts/nat-tmx2pair t/PT-EN.tmx` };
+capture { `$^X scripts/nat-tmx2pair t/PT-EN.tmx` };
 ok -f 't/PT-EN.tmx-EN';
 ok -f 't/PT-EN.tmx-PT';
 
@@ -35,7 +35,7 @@ ok similar('t/input/PT-tok' => 't/PT-EN.tmx-PT');
 
 is Lingua::NATools::count_sentences('t/PT-EN.tmx-EN','t/PT-EN.tmx-PT') => 414;
 
-capture { `scripts/nat-create -v -id=t/_ -i -langs=PT..EN -tmx t/PT-EN.tmx` };
+capture { `$^X scripts/nat-create -v -id=t/_ -i -langs=PT..EN -tmx t/PT-EN.tmx` };
 
 ok -d 't/_';
 
