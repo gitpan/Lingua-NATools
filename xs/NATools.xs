@@ -75,8 +75,11 @@ SvToWChar(SV* arg)
         // UTF8 to wide char mapping
         STRLEN len;
         while (*src) {
-            // *dst++ = utf8_to_uvuni(src, &len);
+#if (PERL_REVISION == 5 && PERL_REVISION >= 16)
             *dst++ = utf8_to_uvuni_buf(src, src + strlen((char*)src), &len);
+#else
+            *dst++ = utf8_to_uvuni(src, &len);
+#endif
             src += len;
         }
     } else {

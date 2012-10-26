@@ -1,3 +1,7 @@
+0.7.4     Fri Oct 26 18:28:15 WEST 2012 - r11550
+
+   - Fix issue with XS code that only worked on recent Perl versions.
+
 0.7.3     Thu Aug 30 15:57:08 WEST 2012 - r11326
 
    - Release dedicated to Enrique Nell.
