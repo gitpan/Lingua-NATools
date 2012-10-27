@@ -10,7 +10,6 @@ BEGIN {
                   scripts/nat-rank
                   scripts/nat-sentence-align
                   scripts/nat-dict
-                  scripts/nat-ptd
                   scripts/nat-shell
                   scripts/nat-mkRealDict
                   scripts/nat-StarDict

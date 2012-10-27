@@ -30,7 +30,6 @@ my $builder = MyBuilder->new
                 'IO::Socket'           => '1.28',
                 'XML::TMX'             => '0.21',
                 'XML::DT'              => '0.44',
-                'Compress::Zlib'       => '1.16',
                 'Test::Harness'        => '2.26',
                 'Storable'             => '2.04',
                 'MLDBM'                => '2.00',
@@ -45,6 +44,7 @@ my $builder = MyBuilder->new
                 'IPC::Open2'           => '1.01',
                 'Time::HiRes'          => '1.2',
                 'Term::ReadLine'       => '1.01',
+                'Lingua::PTD'          => '1.00',
                 'URI::Escape'          => '3.26',
                 'Lingua::Identify'     => '0.17',
                 'Test::Pod'            => '1.20',
@@ -53,12 +53,9 @@ my $builder = MyBuilder->new
                 'ExtUtils::MakeMaker'  => '6.31',
                 'Memoize'              => '0',
                 'Text::NSP'            => '1.09',
-                'IO::Uncompress::Bunzip2' => '2.027',
-                'IO::Compress::Bzip2'  => '2.027',
-                'IO::Uncompress::UnXz' => '2.049',
-                'IO::Compress::Xz'     => '2.049',
                 'List::MoreUtils'      => '0',
                 'Parse::Yapp::Driver'  => '1.05',
+                'Compress::Zlib'       => '1.16',
                 'CGI'                  => '0',
                },
    configure_requires => {
@@ -84,7 +81,7 @@ my $builder = MyBuilder->new
                                                 addDict dumpDicts mkRealDict sentence-align
                                                 codify	examplesExtractor ngramsIdx shell
                                                 compareDicts lex2perl pair2tmx substDict
-                                                create makeCWB ptd tmx2pair)],
+                                                create makeCWB tmx2pair)],
    add_to_cleanup => [
                       'src/*.o',
                       'src/*.so',

@@ -1,3 +1,7 @@
+0.7.5     Sat Oct 27 21:58:13 WEST 2012
+
+   - Lingua::NATools::PTD was moved to Lingua::PTD.
+
 0.7.4     Fri Oct 26 18:28:15 WEST 2012 - r11550
 
    - Fix issue with XS code that only worked on recent Perl versions.

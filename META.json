@@ -50,14 +50,11 @@
             "File::Copy" : "2.06",
             "File::Path" : "1.06",
             "File::Spec" : "0.86",
-            "IO::Compress::Bzip2" : "2.027",
-            "IO::Compress::Xz" : "2.049",
             "IO::Socket" : "1.28",
-            "IO::Uncompress::Bunzip2" : "2.027",
-            "IO::Uncompress::UnXz" : "2.049",
             "IPC::Open2" : "1.01",
             "Lingua::Identify" : "0.17",
             "Lingua::PT::PLNbase" : "0.17",
+            "Lingua::PTD" : "1.00",
             "List::MoreUtils" : "0",
             "MLDBM" : "2.00",
             "Memoize" : "0",
@@ -79,7 +76,7 @@
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.7.4"
+         "version" : "v0.7.5"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -120,26 +117,6 @@
       "Lingua::NATools::PCorpus" : {
          "file" : "lib/Lingua/NATools/PCorpus.pm",
          "version" : "0.04"
-      },
-      "Lingua::NATools::PTD" : {
-         "file" : "lib/Lingua/NATools/PTD.pm",
-         "version" : "1.1"
-      },
-      "Lingua::NATools::PTD::BzDmp" : {
-         "file" : "lib/Lingua/NATools/PTD/BzDmp.pm",
-         "version" : "1.0"
-      },
-      "Lingua::NATools::PTD::Dumper" : {
-         "file" : "lib/Lingua/NATools/PTD/Dumper.pm",
-         "version" : "1.0"
-      },
-      "Lingua::NATools::PTD::SQLite" : {
-         "file" : "lib/Lingua/NATools/PTD/SQLite.pm",
-         "version" : "1.0"
-      },
-      "Lingua::NATools::PTD::XzDmp" : {
-         "file" : "lib/Lingua/NATools/PTD/XzDmp.pm",
-         "version" : "1.0"
       }
    },
    "release_status" : "stable",
@@ -148,5 +125,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.7.4"
+   "version" : "v0.7.5"
 }

@@ -5,7 +5,6 @@ use Test::More;
 my @modules = qw'
                     Lingua::NATools
                     Lingua::NATools::CGI
-                    Lingua::NATools::PTD
                     Lingua::NATools::Config
                     Lingua::NATools::Dict
                     Lingua::NATools::Corpus

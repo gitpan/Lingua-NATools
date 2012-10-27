@@ -21,12 +21,6 @@ lib/Lingua/NATools/PCorpus.pm
 lib/Lingua/NATools/Lexicon.pm
 lib/Lingua/NATools/PatternRules.yp
 
-lib/Lingua/NATools/PTD.pm
-lib/Lingua/NATools/PTD/BzDmp.pm
-lib/Lingua/NATools/PTD/Dumper.pm
-lib/Lingua/NATools/PTD/SQLite.pm
-lib/Lingua/NATools/PTD/XzDmp.pm
-
 3rdParty/interface-jspell.pl
 3rdParty/interface-freeling.pl
 
@@ -98,8 +92,6 @@ t/input/EN-tok.wc
 t/input/PT-tok
 t/input/PT-tok.orig
 t/input/PT-tok.wc
-t/input/02_ptd.dmp
-t/input/02_casedptd.dmp
 
 t/bin/corpus.input
 t/bin/corpus.t
@@ -112,7 +104,6 @@ t/bin/words_t.c
 
 t/pm/00_basic.t
 t/pm/01_config.t
-t/pm/02_ptd.t
 t/pm/03.1_create_from_tmx.t
 t/pm/10_pcorpus.t
 t/pm/11_corpus.t
@@ -139,7 +130,6 @@ scripts/nat-mkMakefile
 scripts/nat-mkRealDict
 scripts/nat-ngramsIdx
 scripts/nat-pair2tmx   # testado no t/pm/03.1
-scripts/nat-ptd
 scripts/nat-rank
 scripts/nat-sentence-align
 scripts/nat-shell
