@@ -2,8 +2,13 @@
 
 use warnings;
 use strict;
+use utf8;
 
-our ($full, $html, $stats, $h);
+our ($full, $html, $stats, $h, $kl);
+
+if ($kl) {
+    require Math::KullbackLeibler::Discrete;
+}
 
 use CGI qw/:standard/;
 use locale;
@@ -40,6 +45,7 @@ if ($full) {
 elsif ($html) {
   my $res;
 
+  my ($count, $average) = (0,0);
   for my $e (keys %$D1) {
     next if $e eq "(null)" || $e eq "(none)";
     next unless exists $D2->{$e};
@@ -50,15 +56,22 @@ elsif ($html) {
 
     my $diff = 0;
 
-    for (@trans) {
-      my $x = 100 * exists($D1->{$e}{trans}{$_})?$D1->{$e}{trans}{$_}:0;
-      my $y = 100 * exists($D2->{$e}{trans}{$_})?$D2->{$e}{trans}{$_}:0;
+    if ($kl) {
+        $diff = Math::KullbackLeibler::Discrete::kl($D1->{$e}{trans}, $D2->{$e}{trans});
+        $count++;
+        $average+=$diff;
+    } else {
+        for (@trans) {
+            my $x = 100 * exists($D1->{$e}{trans}{$_})?$D1->{$e}{trans}{$_}:0;
+            my $y = 100 * exists($D2->{$e}{trans}{$_})?$D2->{$e}{trans}{$_}:0;
 
-      $diff += abs($x-$y);
+            $diff += abs($x-$y);
+        }
+        $diff *= log( 1
+                      + 0.5 * $D1->{$e}{count}
+                      + 0.5 * $D2->{$e}{count});
     }
-    $diff *= log( 1
-                + 0.5 * $D1->{$e}{count}
-                + 0.5 * $D2->{$e}{count});
+
 
     my $best1 = (sort {$D1->{$e}{trans}{$a} <=>
                        $D1->{$e}{trans}{$b}} keys %{$D1->{$e}{trans}})[-1];
@@ -97,6 +110,7 @@ elsif ($html) {
                   $sbest1, $sprob1, $sbest2, $sprob2];
   }
 
+  binmode STDOUT, ":utf8";
   print "<html><style>
            th { border-bottom: solid 1px #000 }
            td { padding: 2px; }
@@ -104,6 +118,9 @@ elsif ($html) {
            .r { border-right: solid 1px #000; text-align: right }
            .l { text-align: right; padding-right: 6px; background-color: #d9d9d9; }
          </style><table cellspacing=\"0\">\n";
+  if ($kl) {
+      print h1("average KL ", ($average/$count));
+  }
   print Tr(th([qw/Word Measure Occurrences/,"Best Trans 1","Best % 1","Best Trans 2","Best % 2"]));
   for (sort { $res->{$b}[0] <=> $res->{$a}[0]} keys %$res) {
     print Tr(

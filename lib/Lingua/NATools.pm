@@ -11,6 +11,7 @@ use locale;
 
 use Data::Dumper;
 use Lingua::NATools::ConfigData;
+use Lingua::NATools::Config;
 
 use File::Path qw(make_path remove_tree);
 use File::Spec::Functions ('catfile', 'file_name_is_absolute');
@@ -26,7 +27,7 @@ use XML::TMX::Reader;
 use Lingua::PT::PLNbase;
 use Lingua::Identify qw/:all/;
 
-our $VERSION = '0.7.5';
+our $VERSION = '0.7.6';
 our $DEBUG = 0;
 
 use parent 'DynaLoader';

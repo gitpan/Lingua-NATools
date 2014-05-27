@@ -63,7 +63,7 @@ if ($tmx) {
     }
     if ($langs && $langs =~ m!([a-z-]+)\.\.([a-z-]+)!i){
         @langs = ($1,$2) ;
-        @files = ("$tmx-$1","$tmx-$2");
+        @files = ("$tmx-".lc($1),"$tmx-".lc($2));
     }
 }
 

@@ -4,7 +4,7 @@
       "Alberto SimÃµes <ambs@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Build version 0.4205",
    "license" : [
       "perl_5"
    ],
@@ -76,7 +76,7 @@
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.7.5"
+         "version" : "v0.7.6"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -87,16 +87,14 @@
          "version" : "0.05"
       },
       "Lingua::NATools::Config" : {
-         "file" : "lib/Lingua/NATools/Config.pm",
-         "version" : 0
+         "file" : "lib/Lingua/NATools/Config.pm"
       },
       "Lingua::NATools::Corpus" : {
          "file" : "lib/Lingua/NATools/Corpus.pm",
          "version" : "0.02"
       },
       "Lingua::NATools::Corpus::Iterator" : {
-         "file" : "lib/Lingua/NATools/Corpus.pm",
-         "version" : 0
+         "file" : "lib/Lingua/NATools/Corpus.pm"
       },
       "Lingua::NATools::Dict" : {
          "file" : "lib/Lingua/NATools/Dict.pm",
@@ -125,5 +123,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.7.5"
+   "version" : "v0.7.6"
 }

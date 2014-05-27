@@ -1,3 +1,7 @@
+0.7.6     Tue May 27 17:19:12 WEST 2014 - r12701
+
+   - Fixed an installation problem that was hanging out.
+
 0.7.5     Sat Oct 27 21:58:13 WEST 2012
 
    - Lingua::NATools::PTD was moved to Lingua::PTD.

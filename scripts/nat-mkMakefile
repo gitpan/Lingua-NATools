@@ -6,10 +6,10 @@ use File::Spec::Functions;
 use Lingua::NATools::ConfigData;
 
 no warnings 'once';
-my $prefix = $Lingua::NATools::LIBPREFIX;
+my $prefix = Lingua::NATools::ConfigData->config('libdir');
 
 # Hope they maintain this...
-my $rules_prefix = catfile $prefix =>"NATools";
+my $rules_prefix = catfile $prefix => "NATools";
 
 our ($id, $h, $tokenize, $full, $i, $ngrams, $terminology, $utf8, $csize, $langs);
 
