@@ -2,7 +2,7 @@
 
 /* NATools - Package with parallel corpora tools
  * Copyright (C) 1998-2001  Djoerd Hiemstra
- * Copyright (C) 2002-2012  Alberto Simões
+ * Copyright (C) 2002-2014  Alberto Simões
  *
  * This package is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ static nat_boolean_t quiet;
 static wchar_t *my_lowercase(wchar_t *sen, nat_boolean_t ignore_case) {
     if (ignore_case) {
         wchar_t *ptr = sen;
-        while(*ptr) {
+        while (*ptr) {
             *ptr = towlower(*ptr);
             ptr++;
         }
@@ -90,16 +90,16 @@ static int AddSentence(wchar_t **sen, unsigned long len,
     
     /* Add each sentence word */
     for (i = 0; i < len; i++) {
-	int flag; 		/* 1: lowercase; 2: Capital; 3: UPPERCASE */
+		int flag; 		/* 1: lowercase; 2: Capital; 3: UPPERCASE */
 
-	if (isCapital(*sen)) flag = 2;
-	else if (isUPPERCASE(*sen)) flag = 3;
-	else flag = 1;
+		if (isCapital(*sen)) flag = 2;
+		else if (isUPPERCASE(*sen)) flag = 3;
+		else flag = 1;
         
-	if (wcslen(*sen) >= MAXWORDLEN) {
-	    fprintf(stderr, "**WARNING** Truncating word '%ls'\n", *sen);
-            (*sen)[MAXWORDLEN - 1] = L'\0';
-	}
+		if (wcslen(*sen) >= MAXWORDLEN) {
+		    fprintf(stderr, "**WARNING** Truncating word '%ls'\n", *sen);
+	            (*sen)[MAXWORDLEN - 1] = L'\0';
+		}
 
         wid = words_add_word(wl, my_lowercase(*sen, ignore_case));
 
@@ -115,13 +115,13 @@ static int AddSentence(wchar_t **sen, unsigned long len,
             fprintf(stderr, "pre.c: received an empty word id.\n");
             return 2;
         }
-	sen++;
+		sen++;
     }
 
     /* If 'wid' is set, the sentence was not empty. */
     if (wid) {
-	/* Add sentence delimiter (0) */
-	if (corpus_add_word(Corpus, 0, 1)) return 3;
+		/* Add sentence delimiter (0) */
+		if (corpus_add_word(Corpus, 0, 1)) return 3;
     } else {
         fprintf(stderr, "ERROR: empty string\n");
         return 4;
@@ -129,6 +129,7 @@ static int AddSentence(wchar_t **sen, unsigned long len,
     return 0;
 }
 
+/* This function signature is PORNOGRAPHIC! */
 static int AnalyseCorpus(Corpus *C1, Words* wl1, InvIndex* Index1, wchar_t *text1, 
 			 Corpus *C2, Words* wl2, InvIndex* Index2, wchar_t *text2,
 			 nat_uint32_t *Nw1, nat_uint32_t *Nw2, nat_uint32_t *Nsen,
@@ -140,45 +141,45 @@ static int AnalyseCorpus(Corpus *C1, Words* wl1, InvIndex* Index1, wchar_t *text
     wchar_t *sen1[MAXBUF], *sen2[MAXBUF];
     
     if (!quiet) {
-	fprintf(stderr, "\n Sentences\tWords cp1\tWords cp2\n");
-	fprintf(stderr," ");
+		fprintf(stderr, "\n Sentences\tWords cp1\tWords cp2\n");
+		fprintf(stderr," ");
     }
     do {
-	/* get a sentence for each corpus (array of words) */
-	len1 = NextTextSentence(sen1, &text1, MAXBUF, SOFTDELIMITER, HARDDELIMITER);
-	len2 = NextTextSentence(sen2, &text2, MAXBUF, SOFTDELIMITER, HARDDELIMITER);
+		/* get a sentence for each corpus (array of words) */
+		len1 = NextTextSentence(sen1, &text1, MAXBUF, SOFTDELIMITER, HARDDELIMITER);
+		len2 = NextTextSentence(sen2, &text2, MAXBUF, SOFTDELIMITER, HARDDELIMITER);
 
-	if (len1 && len2) {
-	    (*TotNsen)++;
-	    (*TotNw1) += len1;
-	    (*TotNw2) += len2;
-	    
-	    if (!quiet && *TotNsen % STEP == 0 )
-		fprintf(stderr, "\r  %7d\t %7d\t %7d", *TotNsen, *TotNw1, *TotNw2);
-	    
-	    if (max(len1, len2) <= MAXBUF) {
-		(*Nsen)++;
-		(*Nw1) += len1;
-		(*Nw2) += len2;
-		if (AddSentence(sen1, len1, wl1, C1, Index1,
-                                *Nsen, partials1, ignore_case))
-                    return 1;
-		if (AddSentence(sen2, len2, wl2, C2, Index2,
-                                *Nsen, partials2, ignore_case))
-                    return 1;
-	    } else {
-		fprintf(stderr, "\n** WARNING: sentence too big: max(%ld,%ld)>%d\n",
-                        len1, len2,MAXBUF);
-		/* 
-		   fprintf(stderr, "**          s1: %ls\n", *sen1);
-		   fprintf(stderr, "**          s2: %ls\n", *sen2);
-		*/
-	    }
-	}
+		if (len1 && len2) {
+		    (*TotNsen)++;
+		    (*TotNw1) += len1;
+		    (*TotNw2) += len2;
+		    
+		    if (!quiet && *TotNsen % STEP == 0 )
+				fprintf(stderr, "\r  %7d\t %7d\t %7d", *TotNsen, *TotNw1, *TotNw2);
+		    
+		    if (max(len1, len2) <= MAXBUF) {
+				(*Nsen)++;
+				(*Nw1) += len1;
+				(*Nw2) += len2;
+				if (AddSentence(sen1, len1, wl1, C1, Index1,
+		                                *Nsen, partials1, ignore_case))
+	                    return 1;
+				if (AddSentence(sen2, len2, wl2, C2, Index2,
+		                                *Nsen, partials2, ignore_case))
+	                    return 1;
+		    } else {
+				fprintf(stderr, "\n** WARNING: sentence too big: max(%ld,%ld)>%d\n",
+	                        len1, len2,MAXBUF);
+				/* 
+				   fprintf(stderr, "**          s1: %ls\n", *sen1);
+				   fprintf(stderr, "**          s2: %ls\n", *sen2);
+				*/
+		    }
+		}
     } while (text1 != NULL && text2 != NULL);
 
     if (!quiet)
-	fprintf(stderr, "\r  %7d\t %7d\t %7d\n\n", *TotNsen, *TotNw1, *TotNw2);
+		fprintf(stderr, "\r  %7d\t %7d\t %7d\n\n", *TotNsen, *TotNw1, *TotNw2);
 
     if (text1 != NULL || text2 != NULL) return 2;
     else  return 0;

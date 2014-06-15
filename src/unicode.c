@@ -169,13 +169,22 @@ wchar_t *ReadText(const char *filename)
     wchar_t *pos;
     
     fd = fopen(filename, "r");
-    if (fd == NULL) return NULL;
-    if (fstat(fileno(fd), &stat_buf) == -1) return NULL;
+    if (fd == NULL) {
+        fprintf(stderr, "failed opening file\n");
+        return NULL;
+    }
+    if (fstat(fileno(fd), &stat_buf) == -1) {
+        fprintf(stderr, "failed stating file\n");
+        return NULL;
+    }
 
     len = stat_buf.st_size;
     result = (wchar_t*)malloc(sizeof(wchar_t) * (len+1));
     pos = result;
-    if (result == NULL) return NULL;
+    if (result == NULL) {
+        fprintf(stderr, "could not allocate buffer\n");
+        return NULL;
+    }
 
     while (!feof(fd)) {
         wchar_t c = fgetwc(fd);
@@ -183,7 +192,10 @@ wchar_t *ReadText(const char *filename)
         pos++;
     }
 
-    if (fclose(fd)) return NULL;
+    if (fclose(fd)) {
+        fprintf(stderr, "problem closing filehandle\n");
+        return NULL;
+    }
     *pos = '\0';
 
     return result;

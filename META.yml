@@ -20,7 +20,7 @@ configure_requires:
   Module::Build: '0.3603'
   Parse::Yapp::Driver: '1.05'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4205, CPAN::Meta::Converter version 2.141170'
+generated_by: 'Module::Build version 0.4205, CPAN::Meta::Converter version 2.141520'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -29,7 +29,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.7.6
+    version: v0.7.7
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: '0.02'
@@ -38,11 +38,13 @@ provides:
     version: '0.05'
   Lingua::NATools::Config:
     file: lib/Lingua/NATools/Config.pm
+    version: '0.1'
   Lingua::NATools::Corpus:
     file: lib/Lingua/NATools/Corpus.pm
     version: '0.02'
   Lingua::NATools::Corpus::Iterator:
     file: lib/Lingua/NATools/Corpus.pm
+    version: '0.1'
   Lingua::NATools::Dict:
     file: lib/Lingua/NATools/Dict.pm
     version: '0.03'
@@ -92,4 +94,4 @@ requires:
   XML::TMX: '0.21'
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.7.6
+version: v0.7.7

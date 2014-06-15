@@ -76,7 +76,7 @@
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.7.6"
+         "version" : "v0.7.7"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -87,14 +87,16 @@
          "version" : "0.05"
       },
       "Lingua::NATools::Config" : {
-         "file" : "lib/Lingua/NATools/Config.pm"
+         "file" : "lib/Lingua/NATools/Config.pm",
+         "version" : "0.1"
       },
       "Lingua::NATools::Corpus" : {
          "file" : "lib/Lingua/NATools/Corpus.pm",
          "version" : "0.02"
       },
       "Lingua::NATools::Corpus::Iterator" : {
-         "file" : "lib/Lingua/NATools/Corpus.pm"
+         "file" : "lib/Lingua/NATools/Corpus.pm",
+         "version" : "0.1"
       },
       "Lingua::NATools::Dict" : {
          "file" : "lib/Lingua/NATools/Dict.pm",
@@ -123,5 +125,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.7.6"
+   "version" : "v0.7.7"
 }

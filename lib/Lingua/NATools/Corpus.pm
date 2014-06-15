@@ -71,6 +71,8 @@ sub free {
 
 package Lingua::NATools::Corpus::Iterator;
 
+our $VERSION = '0.1';
+
 sub new {
     my ($class, $corpusObject) = @_;
     my $self = { corpus => $corpusObject };

@@ -1,3 +1,8 @@
+0.7.7     Sun Jun 15 21:23:52 WEST 2014 - r12725
+
+   - Fixed chunk division that could make alignment fail on noisy corpora.
+   - Fixed problems with missing VERSIONs on two packages.
+
 0.7.6     Tue May 27 17:19:12 WEST 2014 - r12701
 
    - Fixed an installation problem that was hanging out.

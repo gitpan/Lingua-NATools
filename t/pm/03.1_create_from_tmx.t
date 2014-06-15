@@ -33,6 +33,7 @@ ok -f 't/PT-EN.tmx-PT';
 ok similar('t/input/EN-tok' => 't/PT-EN.tmx-EN');
 ok similar('t/input/PT-tok' => 't/PT-EN.tmx-PT');
 
+$Lingua::NATools::LOG = sub {};
 is Lingua::NATools::count_sentences('t/PT-EN.tmx-EN','t/PT-EN.tmx-PT') => 414;
 
 capture { `$^X scripts/nat-create -v -id=t/_ -i -langs=PT..EN -tmx t/PT-EN.tmx` };

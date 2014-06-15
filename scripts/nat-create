@@ -100,8 +100,9 @@ my $self = Lingua::NATools->init({ csize => $csize || undef },
                                  $currentdir, $defaultname, @langs);
 
 $self->{tokenize} = 1 if $tokenize;
-$self->codify({verbose     => $v,
-               ignore_case => $i}, $crp1, $crp2);
+$self->codify({ log_file    => "$defaultname/nat.log",
+				verbose     => $v,
+                ignore_case => $i}, $crp1, $crp2);
 
 $self->index_invindexes(1);
 

@@ -22,6 +22,8 @@ use 5.006;
 use strict;
 use warnings;
 
+our $VERSION = '0.1';
+
 =head1 NAME
 
 Lingua::NATools::Config - Simple configuration file API

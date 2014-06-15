@@ -27,7 +27,7 @@ use XML::TMX::Reader;
 use Lingua::PT::PLNbase;
 use Lingua::Identify qw/:all/;
 
-our $VERSION = '0.7.6';
+our $VERSION = '0.7.7';
 our $DEBUG = 0;
 
 use parent 'DynaLoader';
@@ -35,6 +35,8 @@ bootstrap Lingua::NATools $VERSION;
 
 my $BINPREFIX = Lingua::NATools::ConfigData->config('bindir');
 my $LIBPREFIX = Lingua::NATools::ConfigData->config('libdir');
+
+our $LOG;
 
 sub DEBUG {
     $DEBUG && print STDERR join(" ",@_),"\n"
@@ -99,15 +101,24 @@ sub load {
 }
 
 sub _new_logger {
-    my $verbose = shift;
+    my ($verbose, $file) = @_;
 
-    $verbose && return sub { print STDERR @_; };
+    $verbose and return sub {
+		my $filename = $file;
+		if ($filename) {
+        	open my $fh, ">>", $filename or die $!;
+        	print $fh @_;
+        	close $fh;
+		}
+        
+        print STDERR @_;
+    };
     return sub { };
 }
 
 sub codify {
     my ($self, $ops, $txt1, $txt2) = @_;
-    my $LOG = _new_logger($ops->{verbose} || 0);
+    $LOG = _new_logger($ops->{verbose} || 0, $ops->{log_file});
 
     # If true, the texts will be tokenized.
     my $tokenize = $self->{tokenize};
@@ -214,7 +225,6 @@ sub count_sentences {
 
 sub _count_sentences {
     my ($txt, $v) = @_;
-    my $LOG = _new_logger($v);
 
     my $nr = 0;
     my $last;
@@ -257,7 +267,6 @@ sub calc_chunks {
 
 sub index_invindexes {
     my ($self, $v) = @_;
-    my $LOG = _new_logger($v || 0);
 
     my $range = $self->{conf}->param("nr-chunks");
 
@@ -317,7 +326,6 @@ sub _ngrams_tosqlite {
 
 sub index_ngrams {
     my ($self, $v) = @_;
-    my $LOG = _new_logger($v || 0);
 
     my $ID    = $self->{conf}->param("homedir");
     my $range = $self->{conf}->param("nr-chunks");
@@ -379,12 +387,11 @@ sub split_corpus_simple {
     my $tokenize = $ops->{tokenize} || 0;
     my $nrchunks = $ops->{nrchunks} or die "split_corpus_simple called without number of chunks.";
     my $i        = $ops->{chunk}    or die "split_corpus_simple called without chunk id.";
-    my $LOG      = _new_logger($ops->{verbose}  || 0);
 
     my $ODIR = $self->{conf}->param("homedir");
+    my $local_counter;
 
     {
-        my $c = 0;
         local $/ = "\n\$\n";
 
         open A, "<:utf8", $TXT1 or die "Cannot open file $TXT1\n";
@@ -396,25 +403,34 @@ sub split_corpus_simple {
         open AA, ">:utf8", $out1 or die "Cannot create output file $out1";
         open BB, ">:utf8", $out2 or die "Cannot create output file $out2";
 
+        $local_counter++;
+
         $LOG->(" Creating chunks:\n");
 
+        my $c = 0;
         my $csize = $self->{conf}->param('csize');
         while (<A>) {
+        	chomp;
+
             $c++;
             $LOG->("\r - chunk $i: $c translation units") if $c % 100 == 0;
+            
             my $next = 0;
-            chomp;
+            
             $next = 1 if $_ =~ m!^\s*$!;
-            $_ = join(" ", atomiza($_)) if $tokenize;
+            $_ = join " ", atomiza($_) if $tokenize;
             s/\$/_\$/g;
 
             chomp(my $b = <B>);
-            next if $next || $b =~ m!^\s*$!;
-            $b = join(" ", atomiza($b)) if $tokenize;
+            $next = 1 if $b =~ m!^\s*$!;
+
+            $b = join " ", atomiza($b) if $tokenize;
             $b =~ s/\$/_\$/g;
 
-            print AA "$_\n\$\n";
-            print BB "$b\n\$\n";
+            if (!$next) {
+	            print AA "$_\n\$\n";
+	            print BB "$b\n\$\n";
+	        }
 
             if ($nrchunks !=1 && $c >= $csize) {
                 $LOG->("\r - chunk $i: $c translation units\n");
@@ -428,6 +444,7 @@ sub split_corpus_simple {
 
                 open AA, ">:utf8", $out1 or die "Cannot create output file $out1";
                 open BB, ">:utf8", $out2 or die "Cannot create output file $out2";
+                $local_counter++;
 
                 $LOG->(", $i");
             }
@@ -437,6 +454,11 @@ sub split_corpus_simple {
         close BB;
         close A;
         close B;
+    }
+
+    if ($local_counter < $nrchunks) {
+    	$LOG->("Something went bad. Planned $nrchunks, created $local_counter\n");
+    	die "Something went bad. Planned $nrchunks, created $local_counter\n";
     }
 }
 
@@ -513,7 +535,6 @@ sub align_all {
 
 sub align_chunk {
     my ($self, $chunk, $V, $conf) = @_;
-    my $LOG = _new_logger($V || 0);
 
     $LOG->(" Starting alignment for chunk $chunk\n");
 
@@ -579,7 +600,6 @@ sub run_dict_add {
 
 sub make_dict {
     my ($self, $V) = @_;
-    my $LOG = _new_logger($V || 0);
 
     $LOG->("Creating dictionary");
     for (1..$self->{conf}->param("nr-chunks")) {
@@ -1487,7 +1507,7 @@ Alberto Manuel Brandão Simões, E<lt>ambs@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2002-2012  Alberto Simões
+Copyright 2002-2014  Alberto Simões
 
 This library is free software; you can redistribute it and/or modify
 it under the GNU General Public License 2, which you should find on
