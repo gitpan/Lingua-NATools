@@ -123,7 +123,7 @@ for (@DumpDict) {
   unlink if -f;
   ok ! -f, "Checking if file $_ still does not exist";
 }
-`perl -Mblib scripts/nat-dumpDicts -full t/PT.lex t/PT-EN.bin t/EN.lex t/EN-PT.bin > t/PT-EN.txt`;
+`$^X -Mblib scripts/nat-dumpDicts -full t/PT.lex t/PT-EN.bin t/EN.lex t/EN-PT.bin > t/PT-EN.txt`;
 for (@DumpDict) {
   ok(-f, "Checking if file $_ exist");
 }

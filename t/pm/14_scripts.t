@@ -36,12 +36,12 @@ ok(!@missing, "Missing some scripts to be tested: ".join(",",@missing));
 
 ## Check each script at a time....
 
-like(`perl -c $_ 2>&1`, qr/syntax OK/, "$_ syntax is ok.") for @files;
+like(`$^X -c $_ 2>&1`, qr/syntax OK/, "$_ syntax is ok.") for @files;
 
 for (@files) {
   m!(nat-.*)$!;
   my $script = $1;
-  my $help = `perl $_ -h 2>&1`;
+  my $help = `$^X $_ -h 2>&1`;
   like($help, qr/^$script:/, "$_ supports help flag.");
   like($help, qr/For more help, please run 'perldoc $script'$/, "$_ mentions perldoc.");
 }

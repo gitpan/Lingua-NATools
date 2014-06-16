@@ -76,7 +76,7 @@
    "provides" : {
       "Lingua::NATools" : {
          "file" : "lib/Lingua/NATools.pm",
-         "version" : "v0.7.7"
+         "version" : "v0.7.8_1"
       },
       "Lingua::NATools::CGI" : {
          "file" : "lib/Lingua/NATools/CGI.pm",
@@ -119,11 +119,11 @@
          "version" : "0.04"
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "license" : [
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "v0.7.7"
+   "version" : "v0.7.8_1"
 }

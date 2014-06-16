@@ -1,3 +1,5 @@
+   - Fixed test scripts that were calling perl directly.
+
 0.7.7     Sun Jun 15 21:23:52 WEST 2014 - r12725
 
    - Fixed chunk division that could make alignment fail on noisy corpora.

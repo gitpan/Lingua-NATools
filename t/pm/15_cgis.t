@@ -11,5 +11,5 @@ our @CGIs = qw!cgis/nat-dict.cgi
 
 plan tests => scalar(@CGIs);
 
-like(`perl -c $_ 2>&1`, qr/syntax OK/) for @CGIs;
+like(`$^X -c $_ 2>&1`, qr/syntax OK/) for @CGIs;
 

@@ -26,11 +26,11 @@ for (@prefiles) {
 #
 # Check that nat-lex2perl does anything for PT and EN
 #
-`perl -Mblib scripts/nat-lex2perl t/PT.lex > t/PT.perl`;
+`$^X -Mblib scripts/nat-lex2perl t/PT.lex > t/PT.perl`;
 ok(-f "t/PT.perl", "nat-lex2perl worked");
 
 
-`perl -Mblib scripts/nat-lex2perl t/EN.lex > t/EN.perl`;
+`$^X -Mblib scripts/nat-lex2perl t/EN.lex > t/EN.perl`;
 ok(-f "t/EN.perl", "nat-lex2perl worked");
 
 

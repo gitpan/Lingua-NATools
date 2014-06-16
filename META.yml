@@ -29,7 +29,7 @@ name: Lingua-NATools
 provides:
   Lingua::NATools:
     file: lib/Lingua/NATools.pm
-    version: v0.7.7
+    version: v0.7.8_1
   Lingua::NATools::CGI:
     file: lib/Lingua/NATools/CGI.pm
     version: '0.02'
@@ -94,4 +94,4 @@ requires:
   XML::TMX: '0.21'
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.7.7
+version: v0.7.8_1
